@@ -4,7 +4,7 @@ plugins {
 
 dependencies {
     shadow group: "org.apache.commons", name: "commons-math3", version: "3.0"
-    shadow "com.github.Chronoken:EffectLib:0738342fe6"
+    shadow "com.github.Chronoken:EffectLib:4972666012"
     shadow "com.github.PaperMC:PaperLib:578a177643"
     compile ":spigot-1.15"
     compile ":spigot-1.14.4"
