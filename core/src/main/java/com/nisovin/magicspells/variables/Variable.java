@@ -8,6 +8,7 @@ import org.bukkit.configuration.ConfigurationSection;
 
 public abstract class Variable {
 
+	protected String name;
 	protected double defaultValue = 0;
 	protected String defaultStringValue = 0D + "";
 	protected double maxValue = Double.MAX_VALUE;
@@ -24,7 +25,8 @@ public abstract class Variable {
 		// No op
 	}
 	
-	public final void init(double defaultValue, double minValue, double maxValue, boolean permanent, Objective objective, boolean expBar, String bossbarTitle, BarStyle bossbarStyle, BarColor bossbarColor, String bossbarNamespace) {
+	public final void init(String name, double defaultValue, double minValue, double maxValue, boolean permanent, Objective objective, boolean expBar, String bossbarTitle, BarStyle bossbarStyle, BarColor bossbarColor, String bossbarNamespace) {
+		this.name = name;
 		this.defaultValue = defaultValue;
 		this.defaultStringValue = defaultValue + "";
 		this.minValue = minValue;

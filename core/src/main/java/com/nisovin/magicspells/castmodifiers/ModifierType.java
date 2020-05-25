@@ -7,16 +7,13 @@ import org.bukkit.entity.Player;
 
 import com.nisovin.magicspells.Spell;
 import com.nisovin.magicspells.MagicSpells;
-import com.nisovin.magicspells.util.VariableMod;
 import com.nisovin.magicspells.variables.Variable;
 import com.nisovin.magicspells.Spell.SpellCastState;
 import com.nisovin.magicspells.events.SpellCastEvent;
 import com.nisovin.magicspells.events.ManaChangeEvent;
 import com.nisovin.magicspells.events.SpellTargetEvent;
-import com.nisovin.magicspells.variables.VariableManager;
 import com.nisovin.magicspells.spells.TargetedEntitySpell;
 import com.nisovin.magicspells.spells.TargetedLocationSpell;
-import com.nisovin.magicspells.util.VariableMod.VariableOwner;
 import com.nisovin.magicspells.events.SpellTargetLocationEvent;
 import com.nisovin.magicspells.events.MagicSpellsGenericPlayerEvent;
 
@@ -418,187 +415,74 @@ public enum ModifierType {
 		}
 		
 	},
-	
-	
+
 	VARIABLE_MODIFY(false, false, false, true, "variable") {
-		
+
 		class CustomData {
-			
-			public VariableOwner modifiedVariableOwner;
-			public String modifiedVariableName;
-			public VariableMod mod;
-			
-			CustomData() {
-				
-			}
-			
-		}
-		
-		private void modifyVariable(String variableName, VariableOwner modifiedVariableOwner, Player caster, Player targetPlayer, VariableMod.Operation op, double amount) {
-			Player owner = modifiedVariableOwner == VariableOwner.CASTER ? caster : targetPlayer;
-			VariableManager variableManager = MagicSpells.getVariableManager();
-			variableManager.set(variableName, owner, op.applyTo(variableManager.getValue(variableName, owner), amount));
-		}
-		
-		boolean isDataOk(CustomData data, Player caster, Player target) {
-			boolean needsTarget = data.modifiedVariableOwner == VariableOwner.TARGET || (data.mod.getVariableOwner() == VariableOwner.TARGET && !data.mod.isConstantValue());
-			return !needsTarget || target != null;
-		}
-		
-		@Override
-		public boolean apply(SpellCastEvent event, boolean check, String modifierVar, float modifierVarFloat, int modifierVarInt, Object customData) {
-			if (!(event.getCaster() instanceof Player)) return false;
-			if (check) {
-				CustomData data = (CustomData) customData;
-				if (isDataOk(data, (Player) event.getCaster(), null)) {
-					double amount = data.mod.getValue((Player) event.getCaster(), null);
-					modifyVariable(data.modifiedVariableName, data.modifiedVariableOwner, (Player) event.getCaster(), null, data.mod.getOperation(), amount);
-				}
-			}
-			return true;
-		}
-
-		@Override
-		public boolean apply(ManaChangeEvent event, boolean check, String modifierVar, float modifierVarFloat, int modifierVarInt, Object customData) {
-			if (check) {
-				CustomData data = (CustomData) customData;
-				if (isDataOk(data, event.getPlayer(), null)) {
-					double amount = data.mod.getValue(event.getPlayer(), null);
-					modifyVariable(data.modifiedVariableName, data.modifiedVariableOwner, event.getPlayer(), null, data.mod.getOperation(), amount);
-				}
-			}
-			return true;
-		}
-
-		@Override
-		public boolean apply(SpellTargetEvent event, boolean check, String modifierVar, float modifierVarFloat, int modifierVarInt, Object customData) {
-			if (!(event.getCaster() instanceof Player)) return false;
-			if (check) {
-				CustomData data = (CustomData) customData;
-				Player targetPlayer = event.getTarget() instanceof Player ? (Player) event.getTarget() : null;
-				if (isDataOk(data, (Player) event.getCaster(), targetPlayer)) {
-					double amount = data.mod.getValue((Player) event.getCaster(), targetPlayer);
-					modifyVariable(data.modifiedVariableName, data.modifiedVariableOwner, (Player) event.getCaster(), targetPlayer, data.mod.getOperation(), amount);
-				}
-			}
-			return true;
-		}
-
-		@Override
-		public boolean apply(SpellTargetLocationEvent event, boolean check, String modifierVar, float modifierVarFloat, int modifierVarInt, Object customData) {
-			if (!(event.getCaster() instanceof Player)) return false;
-			if (check) {
-				CustomData data = (CustomData) customData;
-				if (isDataOk(data, (Player) event.getCaster(), null)) {
-					double amount = data.mod.getValue((Player) event.getCaster(), null);
-					modifyVariable(data.modifiedVariableName, data.modifiedVariableOwner, (Player) event.getCaster(), null, data.mod.getOperation(), amount);
-				}
-			}
-			return true;
-		}
-
-		@Override
-		public boolean apply(MagicSpellsGenericPlayerEvent event, boolean check, String modifierVar, float modifierVarFloat, int modifierVarInt, Object customData) {
-			if (check) {
-				CustomData data = (CustomData) customData;
-				if (isDataOk(data, event.getPlayer(), null)) {
-					double amount = data.mod.getValue(event.getPlayer(), null);
-					modifyVariable(data.modifiedVariableName, data.modifiedVariableOwner, event.getPlayer(), null, data.mod.getOperation(), amount);
-				}
-			}
-			return true;
-		}
-		
-		@Override
-		public Object buildCustomActionData(String text) {
-			//input format
-			//[<caster|target>:]<variableToModify>;[=|+|*|/][-]<amount|[<caster|target>:]<modifyingVariableName>>
-			String[] splits = text.split(";");
-			String modifiedVariableData = splits[0];
-			VariableOwner modifiedVariableOwner;
-			String modifiedVariableName;
-			if (modifiedVariableData.contains(":")) {
-				String[] modifiedVariableSplits = modifiedVariableData.split(":");
-				if (modifiedVariableSplits[0].equalsIgnoreCase("target")) modifiedVariableOwner = VariableOwner.TARGET;
-				else modifiedVariableOwner = VariableOwner.CASTER;
-				modifiedVariableName = modifiedVariableSplits[1];
-			} else {
-				modifiedVariableOwner = VariableOwner.CASTER;
-				modifiedVariableName = modifiedVariableData;
-			}
-			
-			VariableMod variableModifier = new VariableMod(splits[1]);
-			CustomData ret = new CustomData();
-			ret.mod = variableModifier;
-			ret.modifiedVariableName = modifiedVariableName;
-			ret.modifiedVariableOwner = modifiedVariableOwner;
-			return ret;
-		}
-		
-	},
-	
-	STRING(false, false, false, true, "string") {
-		
-		class CustomData {
-			
+			public boolean targeted;
 			public Variable variable;
-			public String value;
-			
+			public String operations;
 		}
-		
-		private void setVariable(Player player, CustomData customData) {
-			customData.variable.parseAndSet(player, customData.value);
+
+		private void setVariable(CustomData customData, Player caster, Player target) {
+			String math = customData.operations.replaceFirst("=", "");
+			math = math.replaceAll("%a", caster.getName());
+			if (target != null) math = math.replaceAll("%t", target.getName());
+			Player playerToMod = customData.targeted && target != null ? target : caster;
+			MagicSpells.getVariableManager().evalMath(customData.variable, math, playerToMod);
 		}
-		
+
 		@Override
 		public boolean apply(SpellCastEvent event, boolean check, String modifierVar, float modifierVarFloat, int modifierVarInt, Object customData) {
 			if (!(event.getCaster() instanceof Player)) return false;
-			if (check) setVariable((Player) event.getCaster(), (CustomData) customData);
+			if (check) setVariable((CustomData) customData, (Player) event.getCaster(), null);
 			return true;
 		}
-		
+
 		@Override
 		public boolean apply(ManaChangeEvent event, boolean check, String modifierVar, float modifierVarFloat, int modifierVarInt, Object customData) {
-			if (check) setVariable(event.getPlayer(), (CustomData) customData);
+			if (check) setVariable((CustomData) customData, event.getPlayer(), null);
 			return true;
 		}
-		
+
 		@Override
 		public boolean apply(SpellTargetEvent event, boolean check, String modifierVar, float modifierVarFloat, int modifierVarInt, Object customData) {
 			if (!(event.getCaster() instanceof Player)) return false;
-			if (check) setVariable((Player) event.getCaster(), (CustomData) customData);
+			Player target = null;
+			if (event.getTarget() instanceof Player) target = (Player) event.getTarget();
+			if (check) setVariable((CustomData) customData, (Player) event.getCaster(), target);
 			return true;
 		}
-		
+
 		@Override
 		public boolean apply(SpellTargetLocationEvent event, boolean check, String modifierVar, float modifierVarFloat, int modifierVarInt, Object customData) {
 			if (!(event.getCaster() instanceof Player)) return false;
-			if (check) setVariable((Player) event.getCaster(), (CustomData) customData);
+			if (check) setVariable((CustomData) customData, (Player) event.getCaster(), null);
 			return true;
 		}
-		
+
 		@Override
 		public boolean apply(MagicSpellsGenericPlayerEvent event, boolean check, String modifierVar, float modifierVarFloat, int modifierVarInt, Object customData) {
-			if (check) setVariable(event.getPlayer(), (CustomData) customData);
+			if (check) setVariable((CustomData) customData, event.getPlayer(), null);
 			return true;
 		}
-		
+
 		@Override
 		public Object buildCustomActionData(String text) {
 			if (text == null || text.trim().isEmpty() || !text.contains(" ")) throw new IllegalArgumentException("action \"string\" requires arguments.");
-			
+
 			String[] splits = text.split(" ", 2);
-			Variable variable = MagicSpells.getVariableManager().getVariable(splits[0]);
+			Variable variable = MagicSpells.getVariableManager().getVariable(splits[0].replaceFirst("target:", ""));
 			if (variable == null) throw new IllegalArgumentException(splits[0] + " is not a defined variable!");
-			
+
 			CustomData ret = new CustomData();
+			ret.targeted = splits[0].toLowerCase().startsWith("target:");
 			ret.variable = variable;
-			ret.value = splits[1];
+			ret.operations = splits[1].replaceFirst("=", "").trim();
 			return ret;
 		}
-		
 	}
-	
+
 	;
 	
 	private String[] keys;

@@ -28,14 +28,11 @@ import com.nisovin.magicspells.Spellbook;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.DebugHandler;
 import com.nisovin.magicspells.util.RegexUtil;
-import com.nisovin.magicspells.util.VariableMod;
 import com.nisovin.magicspells.variables.Variable;
 import com.nisovin.magicspells.util.PlayerNameUtils;
 import com.nisovin.magicspells.mana.ManaChangeReason;
-import com.nisovin.magicspells.variables.VariableManager;
 import com.nisovin.magicspells.spells.TargetedEntitySpell;
 import com.nisovin.magicspells.spells.TargetedLocationSpell;
-import com.nisovin.magicspells.variables.PlayerStringVariable;
 
 public class CastCommand implements CommandExecutor, TabCompleter {
 
@@ -275,35 +272,28 @@ public class CastCommand implements CommandExecutor, TabCompleter {
                 return true;
             }
 
-            // modifyvariable <variable> <player> (+|-|*|/|=)<value>
+            // modifyvariable
             if (Perm.MODIFY_VARIABLE.has(sender) && args[0].equals("modifyvariable")) {
-                if (args.length != 4) {
-                    sender.sendMessage(MagicSpells.getTextColor() + "The correct syntax is /c modifyvariable <variable> <player> <[operator]value>");
+                if (args.length < 3) {
+                    sender.sendMessage(MagicSpells.getTextColor() + "The correct syntax is /c modifyvariable <variable> <player> <operations>");
                     return true;
                 }
 
-                VariableManager variableManager = MagicSpells.getVariableManager();
-
                 String var = args[1];
                 String playerName = args[2];
-                String varData = args[3];
+                String operations = String.join(" ", Arrays.copyOfRange(args, 3, args.length - 1)).replaceFirst("=", "").trim();
 
-                Player player = Bukkit.getPlayer(playerName);
-
-                Variable variable = variableManager.getVariable(var);
-                // Could do with a few improvements (more debug overall for commands), but this is how it was handled before.
+                Variable variable = MagicSpells.getVariableManager().getVariable(var);
+                // TODO: Add debug message.
                 if (variable == null) return true;
 
-                VariableMod variableMod = new VariableMod(varData);
-                VariableMod.Operation op = variableMod.getOperation();
+                Player target = Bukkit.getPlayer(playerName);
+                // TODO: Add debug message.
+                if (target == null) return true;
 
-                if (op.equals(VariableMod.Operation.SET) && variable instanceof PlayerStringVariable) {
-                    variableManager.set(var, playerName, variableMod.getValue());
-                }
-                else {
-                    double value = variableMod.getValue(player, null);
-                    variableManager.set(var, playerName, op.applyTo(variable.getValue(playerName), value));
-                }
+                if (sender instanceof Player) operations = operations.replaceAll("%a", sender.getName());
+                operations = operations.replaceAll("%t", target.getName());
+                MagicSpells.getVariableManager().evalMath(variable, operations, target);
                 return true;
             }
 

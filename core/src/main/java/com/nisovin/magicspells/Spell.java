@@ -48,7 +48,6 @@ import com.nisovin.magicspells.util.CastItem;
 import com.nisovin.magicspells.util.TargetInfo;
 import com.nisovin.magicspells.util.BlockUtils;
 import com.nisovin.magicspells.mana.ManaHandler;
-import com.nisovin.magicspells.util.VariableMod;
 import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.util.LocationUtil;
 import com.nisovin.magicspells.util.InventoryUtil;
@@ -86,9 +85,9 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 	protected Map<Spell, Float> sharedCooldowns;
 	protected Map<String, Map<EffectPosition, List<Runnable>>> callbacks;
 
-	protected Multimap<String, VariableMod> variableModsCast;
-	protected Multimap<String, VariableMod> variableModsCasted;
-	protected Multimap<String, VariableMod> variableModsTarget;
+	protected List<String> variableModsCast;
+	protected List<String> variableModsCasted;
+	protected List<String> variableModsTarget;
 
 	protected IntMap<UUID> chargesConsumed;
 
@@ -447,45 +446,18 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 		// Variable options
 		List<String> varModsCast = config.getStringList(path + "variable-mods-cast", null);
 		if (varModsCast != null && !varModsCast.isEmpty()) {
-			variableModsCast = ArrayListMultimap.create();
-			for (String s : varModsCast) {
-				try {
-					String[] data = s.split(" ");
-					String var = data[0];
-					VariableMod varMod = new VariableMod(data[1]);
-					variableModsCast.put(var, varMod);
-				} catch (Exception e) {
-					MagicSpells.error("Invalid variable-mods-cast option for spell '" + spellName + "': " + s);
-				}
-			}
+			variableModsCast = new ArrayList<>();
+			variableModsCast.addAll(varModsCast);
 		}
 		List<String> varModsCasted = config.getStringList(path + "variable-mods-casted", null);
 		if (varModsCasted != null && !varModsCasted.isEmpty()) {
-			variableModsCasted = ArrayListMultimap.create();
-			for (String s : varModsCasted) {
-				try {
-					String[] data = s.split(" ");
-					String var = data[0];
-					VariableMod varMod = new VariableMod(data[1]);
-					variableModsCasted.put(var, varMod);
-				} catch (Exception e) {
-					MagicSpells.error("Invalid variable-mods-casted option for spell '" + spellName + "': " + s);
-				}
-			}
+			variableModsCasted = new ArrayList<>();
+			variableModsCasted.addAll(varModsCasted);
 		}
 		List<String> varModsTarget = config.getStringList(path + "variable-mods-target", null);
 		if (varModsTarget != null && !varModsTarget.isEmpty()) {
-			variableModsTarget = ArrayListMultimap.create();
-			for (String s : varModsTarget) {
-				try {
-					String[] data = s.split(" ");
-					String var = data[0];
-					VariableMod varMod = new VariableMod(data[1]);
-					variableModsTarget.put(var, varMod);
-				} catch (Exception e) {
-					MagicSpells.error("Invalid variable-mods-target option for spell '" + spellName + "': " + s);
-				}
-			}
+			variableModsTarget = new ArrayList<>();
+			variableModsTarget.addAll(varModsTarget);
 		}
 
 		soundOnCooldown = config.getString(path + "sound-on-cooldown", MagicSpells.plugin.soundFailOnCooldown);
@@ -1792,15 +1764,15 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 		return nextCast;
 	}
 
-	public Multimap<String, VariableMod> getVariableModsCast() {
+	public List<String> getVariableModCast() {
 		return variableModsCast;
 	}
 
-	public Multimap<String, VariableMod> getVariableModsCasted() {
+	public List<String> getVariableModCasted() {
 		return variableModsCasted;
 	}
 
-	public Multimap<String, VariableMod> getVariableModsTarget() {
+	public List<String> getVariableModTarget() {
 		return variableModsTarget;
 	}
 
