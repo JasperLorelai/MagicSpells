@@ -274,14 +274,14 @@ public class CastCommand implements CommandExecutor, TabCompleter {
 
             // modifyvariable
             if (Perm.MODIFY_VARIABLE.has(sender) && args[0].equals("modifyvariable")) {
-                if (args.length < 3) {
+                if (args.length < 4) {
                     sender.sendMessage(MagicSpells.getTextColor() + "The correct syntax is /c modifyvariable <variable> <player> <operations>");
                     return true;
                 }
 
                 String var = args[1];
                 String playerName = args[2];
-                String operations = String.join(" ", Arrays.copyOfRange(args, 3, args.length - 1)).replaceFirst("=", "").trim();
+                String operations = String.join(" ", Arrays.copyOfRange(args, 3, args.length)).replaceFirst("=", "").trim();
 
                 Variable variable = MagicSpells.getVariableManager().getVariable(var);
                 // TODO: Add debug message.
