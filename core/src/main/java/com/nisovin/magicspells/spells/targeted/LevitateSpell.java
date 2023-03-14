@@ -62,11 +62,7 @@ public class LevitateSpell extends TargetedSpell implements TargetedEntitySpell 
 		cancelOnItemSwitch = getConfigBoolean("cancel-on-item-switch", true);
 		cancelOnTakeDamage = getConfigBoolean("cancel-on-take-damage", true);
 
-		List<String> spells = getConfigStringList("spells", null);
-		List<String> deniedSpells = getConfigStringList("denied-spells", null);
-		List<String> tagList = getConfigStringList("spell-tags", null);
-		List<String> deniedTagList = getConfigStringList("denied-spell-tags", null);
-		filter = new SpellFilter(spells, deniedSpells, tagList, deniedTagList);
+		filter = getConfigSpellFilter();
 
 		levitating = new HashMap<>();
 	}

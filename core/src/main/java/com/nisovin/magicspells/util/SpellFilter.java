@@ -7,6 +7,8 @@ import java.util.ArrayList;
 
 import com.nisovin.magicspells.Spell;
 
+import org.bukkit.configuration.ConfigurationSection;
+
 public class SpellFilter {
 
 	private Set<String> allowedSpells = null;
@@ -76,14 +78,49 @@ public class SpellFilter {
 		
 		return defaultReturn;
 	}
-	
-	public static SpellFilter fromConfig(MagicConfig config, String basePath) {
-		basePath = basePath +  '.';
-		List<String> spells = config.getStringList(basePath + "spells", null);
-		List<String> deniedSpells = config.getStringList(basePath + "denied-spells", null);
-		List<String> tagList = config.getStringList(basePath + "spell-tags", null);
-		List<String> deniedTagList = config.getStringList(basePath + "denied-spell-tags", null);
-		return new SpellFilter(spells, deniedSpells, tagList, deniedTagList);
+
+	/**
+	 * Create a {@link SpellFilter} instance out of a configuration section.
+	 * @param config Reads from the following keys: "spells", "denied-spells", "spell-tags", and "denied-spell-tags".
+	 * @param path Path for the keys to be read from. If the path is set to something like "filter", the keys will
+	 *             be read from the passed config section under the "filter" section.
+	 */
+	public static SpellFilter fromConfig(ConfigurationSection config, String path) {
+		return fromConfigKeys(config, path, "", "", "", "");
+	}
+
+	/**
+	 * Create a {@link SpellFilter} instance out of a legacy configuration section.
+	 * @param config Reads from the normal keys as well as the following keys:
+	 *               "allowed-spells", "disallowed-spells","allowed-spell-tags", and "disallowed-spell-tags".
+	 * @param path Path for the keys to be read from. If the path is set to something like "filter", the keys will
+	 *             be read from the passed config section under the "filter" section.
+	 */
+	public static SpellFilter fromLegacyConfig(ConfigurationSection config, String path) {
+		return fromConfigKeys(config, path,
+				"allowed-spells",
+				"disallowed-spells",
+				"allowed-spell-tags",
+				"disallowed-spell-tags"
+		);
+	}
+
+	private static SpellFilter fromConfigKeys(ConfigurationSection config, String path, String keySpells, String keyDeniedSpells, String keyTags, String deniedTags) {
+		if (!path.isEmpty() && !path.endsWith(".")) path += ".";
+
+		List<String> spells = merge(config, path, "spells", keySpells);
+		List<String> deniedSpells = merge(config, path, "denied-spells", keyDeniedSpells);
+		List<String> spellTags = merge(config, path, "spell-tags", keyTags);
+		List<String> deniedSpellTags = merge(config, path, "denied-spell-tags", deniedTags);
+
+		return new SpellFilter(spells, deniedSpells, spellTags, deniedSpellTags);
+	}
+
+	private static List<String> merge(ConfigurationSection config, String path, String key, String legacyKey) {
+		List<String> list = config.getStringList(path + key);
+		if (legacyKey == null || legacyKey.isEmpty()) return list;
+		list.addAll(config.getStringList(path + legacyKey));
+		return list;
 	}
 
 	/**
