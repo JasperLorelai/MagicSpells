@@ -65,6 +65,7 @@ import com.nisovin.magicspells.util.magicitems.MagicItem;
 import com.nisovin.magicspells.castmodifiers.ModifierSet;
 import com.nisovin.magicspells.commands.CommandHelpFilter;
 import com.nisovin.magicspells.util.magicitems.MagicItems;
+import com.nisovin.magicspells.util.magicstring.MagicString;
 import com.nisovin.magicspells.storage.types.TXTFileStorage;
 import com.nisovin.magicspells.volatilecode.ManagerVolatile;
 import com.nisovin.magicspells.volatilecode.VolatileCodeHandle;
@@ -1393,6 +1394,7 @@ public class MagicSpells extends JavaPlugin {
 		if (!(recipient instanceof Player) || message == null || message.isEmpty()) return;
 
 		message = doReplacements(message, caster, target, args, replacements);
+		message = MagicString.parse(message, caster, target, args);
 
 		recipient.sendMessage(Util.getMiniMessage(getTextColor() + message));
 	}
