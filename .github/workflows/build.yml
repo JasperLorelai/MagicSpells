@@ -26,17 +26,17 @@ jobs:
             console.log(await github.rest.repos.checkCollaborator({
               owner: "JasperLorelai",
               repo: "MagicSpells",
-              user: "JasperLorelai"
+              username: "JasperLorelai"
             }));
             console.log(await github.rest.repos.checkCollaborator({
               owner: "TheComputerGeek2",
               repo: "MagicSpells",
-              user: "JasperLorelai"
+              username: "JasperLorelai"
             }));
             console.log(await github.rest.repos.checkCollaborator({
               owner: "TheComputerGeek2",
               repo: "MagicSpells",
-              user: "TheComputerGeek2"
+              username: "TheComputerGeek2"
             }));
       - name: Get commit hash
         id: hash
