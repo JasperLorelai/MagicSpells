@@ -27,17 +27,17 @@ jobs:
               owner: "JasperLorelai",
               repo: "MagicSpells",
               username: "JasperLorelai"
-            }));
+            }).status === 204 ? "collaborator" : "not known");
             console.log(await github.rest.repos.checkCollaborator({
               owner: "TheComputerGeek2",
               repo: "MagicSpells",
               username: "JasperLorelai"
-            }));
+            }).status === 204 ? "collaborator" : "not known");
             console.log(await github.rest.repos.checkCollaborator({
               owner: "TheComputerGeek2",
               repo: "MagicSpells",
               username: "TheComputerGeek2"
-            }));
+            }).status === 204 ? "collaborator" : "not known");
       - name: Get commit hash
         id: hash
         run: echo "sha_short=$(git rev-parse --short ${{github.sha}})" >> $GITHUB_OUTPUT
