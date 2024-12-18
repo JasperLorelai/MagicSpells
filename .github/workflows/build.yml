@@ -23,50 +23,35 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
-            console.log("checking: JasperLorelai/JasperLorelai");
-            try {
-              const response = await github.rest.repos.checkCollaborator({
-                owner: "JasperLorelai",
-                repo: "MagicSpells",
-                username: "JasperLorelai"
-              });
-              console.log(response.status === 204 ? "collaborator" : "not");
-            } catch(error) {
-              console.log("unknown");
-            }
-            console.log("checking: JasperLorelai/TheComputerGeek2");
-            try {
-              const response = await github.rest.repos.checkCollaborator({
-                owner: "JasperLorelai",
-                repo: "MagicSpells",
-                username: "TheComputerGeek2"
-              });
-              console.log(response.status === 204 ? "collaborator" : "not");
-            } catch(error) {
-              console.log("unknown");
-            }
-            console.log("checking: TheComputerGeek2/JasperLorelai");
-            try {
-              const response = await github.rest.repos.checkCollaborator({
-                owner: "TheComputerGeek2",
-                repo: "MagicSpells",
-                username: "JasperLorelai"
-              });
-              console.log(response.status === 204 ? "collaborator" : "not");
-            } catch(error) {
-              console.log("unknown");
-            }
-            console.log("checking: TheComputerGeek2/TheComputerGeek2");
-            try {
-              const response = await github.rest.repos.checkCollaborator({
-                owner: "TheComputerGeek2",
-                repo: "MagicSpells",
-                username: "TheComputerGeek2"
-              });
-              console.log(response.status === 204 ? "collaborator" : "not");
-            } catch(error) {
-              console.log("unknown");
-            }
+            let response;
+            
+            response = github.rest.repos.checkCollaborator({
+              owner: "JasperLorelai",
+              repo: "MagicSpells",
+              username: "JasperLorelai"
+            }).then(({status}) => status === 204 ? "collaborator" : "not").catch(_ => "not2");
+            console.log("JasperLorelai/JasperLorelai - " + response);
+            
+            response = github.rest.repos.checkCollaborator({
+              owner: "JasperLorelai",
+              repo: "MagicSpells",
+              username: "TheComputerGeek2"
+            }).then(({status}) => status === 204 ? "collaborator" : "not").catch(_ => "not2");
+            console.log("JasperLorelai/TheComputerGeek2 - " + response);
+            
+            response = github.rest.repos.checkCollaborator({
+              owner: "TheComputerGeek2",
+              repo: "MagicSpells",
+              username: "TheComputerGeek2"
+            }).then(({status}) => status === 204 ? "collaborator" : "not").catch(_ => "not2");
+            console.log("TheComputerGeek2/TheComputerGeek2 - " + response);
+            
+            response = github.rest.repos.checkCollaborator({
+              owner: "TheComputerGeek2",
+              repo: "MagicSpells",
+              username: "JasperLorelai"
+            }).then(({status}) => status === 204 ? "collaborator" : "not").catch(_ => "not2");
+            console.log("TheComputerGeek2/JasperLorelai - " + response);
       - name: Get commit hash
         id: hash
         run: echo "sha_short=$(git rev-parse --short ${{github.sha}})" >> $GITHUB_OUTPUT
