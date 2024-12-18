@@ -25,9 +25,14 @@ jobs:
           script: |
             const response = await github.rest.repos.getCollaboratorPermissionLevel({
               ...context.repo,
-              username: "DragonsAscent"
+              username: "JasperLorelai"
             });
             console.log(response)
+            const response2 = await github.rest.repos.getCollaboratorPermissionLevel({
+              "TheComputerGeek2/MagicSpells",
+              username: "DragonsAscent"
+            });
+            console.log(response2)
       - name: Get commit hash
         id: hash
         run: echo "sha_short=$(git rev-parse --short ${{github.sha}})" >> $GITHUB_OUTPUT
