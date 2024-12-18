@@ -24,7 +24,7 @@ jobs:
         with:
           script: |
             const response = await github.rest.repos.getCollaboratorPermissionLevel({
-              ...github.context.repo,
+              ...context.repo,
               username: "DragonsAscent"
             });
             console.log(response)
