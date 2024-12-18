@@ -23,16 +23,21 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
-            const response = await github.rest.repos.getCollaboratorPermissionLevel({
-              ...context.repo,
-              username: "JasperLorelai"
-            });
-            console.log(response)
-            const response2 = await github.rest.repos.getCollaboratorPermissionLevel({
-              "TheComputerGeek2/MagicSpells",
-              username: "DragonsAscent"
-            });
-            console.log(response2)
+            console.log(await github.rest.repos.checkCollaborator({
+              owner: "JasperLorelai",
+              repo: "MagicSpells",
+              user: "JasperLorelai"
+            }));
+            console.log(await github.rest.repos.checkCollaborator({
+              owner: "TheComputerGeek2",
+              repo: "MagicSpells",
+              user: "JasperLorelai"
+            }));
+            console.log(await github.rest.repos.checkCollaborator({
+              owner: "TheComputerGeek2",
+              repo: "MagicSpells",
+              user: "TheComputerGeek2"
+            }));
       - name: Get commit hash
         id: hash
         run: echo "sha_short=$(git rev-parse --short ${{github.sha}})" >> $GITHUB_OUTPUT
