@@ -1,6 +1,7 @@
 rootProject.name = "MagicSpellsParent"
 
 include("core")
+
 include("factions")
 include("memory")
 include("shop")
