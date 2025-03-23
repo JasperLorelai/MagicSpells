@@ -31,7 +31,7 @@ public class PotionHandler {
 			List<PotionEffect> potionEffects = new ArrayList<>();
 
 			for (String potionEffect : potionEffectStrings) {
-				PotionEffect eff = Util.buildPotionEffect(potionEffect);
+				PotionEffect eff = Util.buildPotionEffect(potionEffect, false);
 				if (eff == null) continue;
 
 				potionMeta.addCustomEffect(eff, true);

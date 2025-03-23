@@ -337,7 +337,7 @@ public class MagicItemDataParser {
 
 							for (JsonElement element : potionEffectStrings) {
 								String potionEffectString = element.getAsString();
-								PotionEffect eff = Util.buildPotionEffect(potionEffectString);
+								PotionEffect eff = Util.buildPotionEffect(potionEffectString, false);
 
 								if (eff != null) potionEffects.add(eff);
 								else MagicSpells.error("'" + potionEffectString + "' could not be connected to a potion effect.");

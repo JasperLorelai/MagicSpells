@@ -14,7 +14,6 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
-import org.bukkit.potion.PotionEffectType;
 import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.attribute.AttributeModifier;
@@ -31,7 +30,6 @@ import com.nisovin.magicspells.events.SpellTargetEvent;
 import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.util.magicitems.MagicItem;
 import com.nisovin.magicspells.util.magicitems.MagicItems;
-import com.nisovin.magicspells.handlers.PotionEffectHandler;
 import com.nisovin.magicspells.util.itemreader.AttributeHandler;
 
 public class MinionSpell extends BuffSpell {
@@ -119,20 +117,13 @@ public class MinionSpell extends BuffSpell {
 		List<String> potionEffectList = getConfigStringList("potion-effects", null);
 		if (potionEffectList != null && !potionEffectList.isEmpty()) {
 			potionEffects = new ArrayList<>();
-			for (String potion : potionEffectList) {
-				String[] split = potion.split(" ");
-				try {
-					PotionEffectType type = PotionEffectHandler.getPotionEffectType(split[0]);
-					if (type == null) throw new Exception("");
-					int duration = 600;
-					if (split.length > 1) duration = Integer.parseInt(split[1]);
-					int strength = 0;
-					if (split.length > 2) strength = Integer.parseInt(split[2]);
-					boolean ambient = split.length > 3 && split[3].equalsIgnoreCase("ambient");
-					potionEffects.add(new PotionEffect(type, duration, strength, ambient));
-				} catch (Exception e) {
-					MagicSpells.error("MinionSpell '" + internalName + "' has an invalid potion effect string " + potion);
+			for (String potionString : potionEffectList) {
+				PotionEffect effect = Util.buildPotionEffect(potionString, true);
+				if (effect == null) {
+					MagicSpells.error("MinionSpell '" + internalName + "' has an invalid potion effect string " + potionString);
+					continue;
 				}
+				potionEffects.add(effect);
 			}
 		}
 

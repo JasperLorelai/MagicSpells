@@ -1,7 +1,6 @@
 package com.nisovin.magicspells.spells.targeted;
 
 import java.util.Set;
-import java.util.List;
 import java.util.HashSet;
 import java.util.ArrayList;
 
@@ -16,17 +15,16 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.Particle.DustOptions;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.entity.AreaEffectCloud;
-import org.bukkit.potion.PotionEffectType;
 
 import net.kyori.adventure.text.Component;
 
 import com.nisovin.magicspells.util.*;
+import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.spells.TargetedSpell;
 import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.spells.TargetedEntitySpell;
 import com.nisovin.magicspells.util.config.ConfigDataUtil;
 import com.nisovin.magicspells.spells.TargetedLocationSpell;
-import com.nisovin.magicspells.handlers.PotionEffectHandler;
 
 public class ParticleCloudSpell extends TargetedSpell implements TargetedLocationSpell, TargetedEntitySpell {
 
@@ -94,28 +92,15 @@ public class ParticleCloudSpell extends TargetedSpell implements TargetedLocatio
 		canTargetEntities = getConfigDataBoolean("can-target-entities", true);
 		canTargetLocation = getConfigDataBoolean("can-target-location", true);
 
-		List<String> potionEffectStrings = getConfigStringList("potion-effects", null);
-		if (potionEffectStrings == null) potionEffectStrings = new ArrayList<>();
-
 		potionEffects = new HashSet<>();
-
-		for (String effect : potionEffectStrings) {
-			potionEffects.add(getPotionEffectFromString(effect));
+		for (String potionString : getConfigStringList("potion-effects", new ArrayList<>())) {
+			PotionEffect effect = Util.buildPotionEffect(potionString, true);
+			if (effect == null) {
+				MagicSpells.error("ParticleCloudSpell '" + spellName + "' has an invalid potion effect defined: " + potionString);
+				continue;
+			}
+			potionEffects.add(effect);
 		}
-	}
-
-	private static PotionEffect getPotionEffectFromString(String s) {
-		String[] splits = s.split(" ");
-		PotionEffectType type = PotionEffectHandler.getPotionEffectType(splits[0]);
-
-		int durationTicks = Integer.parseInt(splits[1]);
-		int amplifier = Integer.parseInt(splits[2]);
-
-		boolean ambient = Boolean.parseBoolean(splits[3]);
-		boolean particles = Boolean.parseBoolean(splits[4]);
-		boolean icon = Boolean.parseBoolean(splits[5]);
-
-		return new PotionEffect(type, durationTicks, amplifier, ambient, particles, icon);
 	}
 
 	@Override
@@ -127,20 +112,14 @@ public class ParticleCloudSpell extends TargetedSpell implements TargetedLocatio
 			if (!info.noTarget()) {
 				Location location = info.target().getLocation();
 				location.setDirection(data.caster().getLocation().getDirection());
-				data = info.spellData().location(location);
-
-				spawnCloud(data);
-				return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
+				return spawnCloud(info.spellData().location(location));
 			}
 		}
 
 		if (canTargetLocation.get(data)) {
 			TargetInfo<Location> info = getTargetedBlockLocation(data, 0.5, 1, 0.5, false);
 			if (info.noTarget()) return noTarget(info);
-			data = info.spellData();
-
-			spawnCloud(data);
-			return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
+			return spawnCloud(info.spellData());
 		}
 
 		return noTarget(data);
@@ -148,18 +127,15 @@ public class ParticleCloudSpell extends TargetedSpell implements TargetedLocatio
 
 	@Override
 	public CastResult castAtLocation(SpellData data) {
-		spawnCloud(data);
-		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
+		return spawnCloud(data);
 	}
 
 	@Override
 	public CastResult castAtEntity(SpellData data) {
-		data = data.location(data.target().getLocation());
-		spawnCloud(data);
-		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
+		return spawnCloud(data.location(data.target().getLocation()));
 	}
 
-	private void spawnCloud(SpellData data) {
+	private CastResult spawnCloud(SpellData data) {
 		Location location = data.location();
 
 		//apply relative offset
@@ -181,6 +157,7 @@ public class ParticleCloudSpell extends TargetedSpell implements TargetedLocatio
 
 			cloud.setSource(finalData.caster());
 			cloud.setColor(Color.fromRGB(color.get(finalData)));
+
 			cloud.setRadius(radius.get(finalData));
 			cloud.setGravity(useGravity.get(finalData));
 			cloud.setWaitTime(waitTime.get(finalData));
@@ -199,8 +176,8 @@ public class ParticleCloudSpell extends TargetedSpell implements TargetedLocatio
 			}
 		});
 
-		if (data.hasTarget()) playSpellEffects(data.caster(), data.target(), data);
-		else playSpellEffects(data.caster(), location, data);
+		playSpellEffects(data);
+		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 	}
 
 }

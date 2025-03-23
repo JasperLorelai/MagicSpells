@@ -21,7 +21,6 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.util.RayTraceResult;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.potion.PotionEffectType;
 import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.attribute.AttributeModifier;
@@ -44,7 +43,6 @@ import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.util.magicitems.MagicItem;
 import com.nisovin.magicspells.util.magicitems.MagicItems;
 import com.nisovin.magicspells.spells.TargetedLocationSpell;
-import com.nisovin.magicspells.handlers.PotionEffectHandler;
 import com.nisovin.magicspells.events.SpellTargetLocationEvent;
 import com.nisovin.magicspells.util.itemreader.AttributeHandler;
 import com.nisovin.magicspells.util.ai.goals.LookAtEntityTypeGoal;
@@ -203,29 +201,13 @@ public class SpawnEntitySpell extends TargetedSpell implements TargetedLocationS
 		List<String> list = getConfigStringList("potion-effects", null);
 		if (list != null && !list.isEmpty()) {
 			potionEffects = new ArrayList<>();
-
-			String[] split;
-			PotionEffectType type;
-			int duration;
-			int strength;
-			boolean ambient;
 			for (String data : list) {
-				split = data.split(" ");
-				try {
-					type = PotionEffectHandler.getPotionEffectType(split[0]);
-					if (type == null) throw new Exception("");
-
-					duration = 600;
-					if (split.length > 1) duration = Integer.parseInt(split[1]);
-
-					strength = 0;
-					if (split.length > 2) strength = Integer.parseInt(split[2]);
-
-					ambient = split.length > 3 && split[3].equalsIgnoreCase("ambient");
-					potionEffects.add(new PotionEffect(type, duration, strength, ambient));
-				} catch (Exception e) {
-					MagicSpells.error("SpawnMonsterSpell '" + spellName + "' has an invalid potion effect defined: " + data);
+				PotionEffect effect = Util.buildPotionEffect(data, true);
+				if (effect == null) {
+					MagicSpells.error("SpawnEntitySpell '" + spellName + "' has an invalid potion effect defined: " + data);
+					continue;
 				}
+				potionEffects.add(effect);
 			}
 		}
 	}
