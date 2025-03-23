@@ -30,7 +30,7 @@ public class ParticleCloudEffect extends ParticlesEffect {
 		duration = ConfigDataUtil.getInteger(config, "duration", 60);
 
 		radius = ConfigDataUtil.getFloat(config, "radius", 5);
-		yOffset = ConfigDataUtil.getFloat(config, "y-offset", 0);
+		yOffset = ConfigDataUtil.getFloat(config, "y-offset", 0.5f);
 		radiusPerTick = ConfigDataUtil.getFloat(config, "radius-per-tick", 0);
 	}
 
