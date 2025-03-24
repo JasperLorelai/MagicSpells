@@ -1,0 +1,8 @@
+on:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "'${{secrets.GITHUB_TOKEN}}' - '${{secrets.WIKI_WEBHOOK}}'"
