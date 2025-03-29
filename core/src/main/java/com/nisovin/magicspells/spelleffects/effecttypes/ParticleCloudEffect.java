@@ -1,5 +1,8 @@
 package com.nisovin.magicspells.spelleffects.effecttypes;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.Particle;
@@ -45,7 +48,6 @@ public class ParticleCloudEffect extends ParticlesEffect {
 		if (particle == null) return null;
 
 		location.getWorld().spawn(location.clone().add(0, yOffset.get(data), 0), AreaEffectCloud.class, cloud -> {
-			cloud.setColor(Color.fromRGB(color.get(data)));
 			cloud.setRadius(radius.get(data));
 			cloud.setDuration(duration.get(data));
 			cloud.setRadiusPerTick(radiusPerTick.get(data));
@@ -54,6 +56,18 @@ public class ParticleCloudEffect extends ParticlesEffect {
 		});
 
 		return null;
+	}
+
+	@Override
+	protected Object getParticleData(@NotNull Particle particle, @Nullable Entity entity, @NotNull Location location, @NotNull SpellData data) {
+		Class<?> type = particle.getDataType();
+
+		if (type == Color.class) {
+			Color color = argbColor.get(data);
+			return color == null ? Color.fromRGB(this.color.get(data)) : color;
+		}
+
+		return super.getParticleData(particle, entity, location, data);
 	}
 
 }
