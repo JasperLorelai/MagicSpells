@@ -68,6 +68,7 @@ public class SpawnEntitySpell extends TargetedSpell implements TargetedLocationS
 	private final ConfigData<Float> chestplateDropChance;
 	private final ConfigData<Float> leggingsDropChance;
 	private final ConfigData<Float> bootsDropChance;
+
 	private final ConfigData<Float> yOffset;
 
 	private final ConfigData<Integer> duration;
@@ -89,6 +90,7 @@ public class SpawnEntitySpell extends TargetedSpell implements TargetedLocationS
 	private final ConfigData<Boolean> invulnerable;
 	private final ConfigData<Boolean> useCasterName;
 	private final ConfigData<Boolean> centerLocation;
+	private final ConfigData<Boolean> defaultEquipment;
 	private final ConfigData<Boolean> addLookAtPlayerAI;
 	private final ConfigData<Boolean> allowSpawnInMidair;
 
@@ -120,45 +122,38 @@ public class SpawnEntitySpell extends TargetedSpell implements TargetedLocationS
 		MagicItem magicMainHandItem = MagicItems.getMagicItemFromString(getConfigString("main-hand", ""));
 		if (magicMainHandItem != null) {
 			mainHandItem = magicMainHandItem.getItemStack();
-			if (mainHandItem != null && mainHandItem.getType().isAir()) mainHandItem = null;
+			mainHandItem.setAmount(1);
 		}
 
 		MagicItem magicOffHandItem = MagicItems.getMagicItemFromString(getConfigString("off-hand", ""));
 		if (magicOffHandItem != null) {
 			offHandItem = magicOffHandItem.getItemStack();
-			if (offHandItem != null && offHandItem.getType().isAir()) offHandItem = null;
+			offHandItem.setAmount(1);
 		}
 
 		MagicItem magicHelmetItem = MagicItems.getMagicItemFromString(getConfigString("helmet", ""));
 		if (magicHelmetItem != null) {
 			helmet = magicHelmetItem.getItemStack();
-			if (helmet != null && helmet.getType().isAir()) helmet = null;
+			helmet.setAmount(1);
 		}
 
 		MagicItem magicChestplateItem = MagicItems.getMagicItemFromString(getConfigString("chestplate", ""));
 		if (magicChestplateItem != null) {
 			chestplate = magicChestplateItem.getItemStack();
-			if (chestplate != null && chestplate.getType().isAir()) chestplate = null;
+			chestplate.setAmount(1);
 		}
 
 		MagicItem magicLeggingsItem = MagicItems.getMagicItemFromString(getConfigString("leggings", ""));
 		if (magicLeggingsItem != null) {
 			leggings = magicLeggingsItem.getItemStack();
-			if (leggings != null && leggings.getType().isAir()) leggings = null;
+			leggings.setAmount(1);
 		}
 
 		MagicItem magicBootsItem = MagicItems.getMagicItemFromString(getConfigString("boots", ""));
 		if (magicBootsItem != null) {
 			boots = magicBootsItem.getItemStack();
-			if (boots != null && boots.getType().isAir()) boots = null;
+			boots.setAmount(1);
 		}
-
-		if (mainHandItem != null) mainHandItem.setAmount(1);
-		if (offHandItem != null) offHandItem.setAmount(1);
-		if (helmet != null) helmet.setAmount(1);
-		if (chestplate != null) chestplate.setAmount(1);
-		if (leggings != null) leggings.setAmount(1);
-		if (boots != null) boots.setAmount(1);
 
 		mainHandItemDropChance = getConfigDataFloat("main-hand-drop-chance", 0);
 		offHandItemDropChance = getConfigDataFloat("off-hand-drop-chance", 0);
@@ -166,6 +161,7 @@ public class SpawnEntitySpell extends TargetedSpell implements TargetedLocationS
 		chestplateDropChance = getConfigDataFloat("chestplate-drop-chance", 0);
 		leggingsDropChance = getConfigDataFloat("leggings-drop-chance", 0);
 		bootsDropChance = getConfigDataFloat("boots-drop-chance", 0);
+
 		yOffset = getConfigDataFloat("y-offset", 0.1F);
 
 		duration = getConfigDataInt("duration", 0);
@@ -187,6 +183,7 @@ public class SpawnEntitySpell extends TargetedSpell implements TargetedLocationS
 		cancelAttack = getConfigDataBoolean("cancel-attack", true);
 		useCasterName = getConfigDataBoolean("use-caster-name", false);
 		centerLocation = getConfigDataBoolean("center-location", false);
+		defaultEquipment = getConfigDataBoolean("default-equipment", false);
 		addLookAtPlayerAI = getConfigDataBoolean("add-look-at-player-ai", false);
 		allowSpawnInMidair = getConfigDataBoolean("allow-spawn-in-midair", false);
 
@@ -517,12 +514,13 @@ public class SpawnEntitySpell extends TargetedSpell implements TargetedLocationS
 		if (entity instanceof LivingEntity livingEntity) {
 			EntityEquipment equipment = livingEntity.getEquipment();
 			if (equipment != null) {
-				equipment.setItemInMainHand(mainHandItem);
-				equipment.setItemInOffHand(offHandItem);
-				equipment.setHelmet(helmet);
-				equipment.setChestplate(chestplate);
-				equipment.setLeggings(leggings);
-				equipment.setBoots(boots);
+				boolean defaultEquipment = this.defaultEquipment.get(data);
+				if (!defaultEquipment || mainHandItem != null) equipment.setItemInMainHand(mainHandItem);
+				if (!defaultEquipment || offHandItem != null) equipment.setItemInOffHand(offHandItem);
+				if (!defaultEquipment || helmet != null) equipment.setHelmet(helmet);
+				if (!defaultEquipment || chestplate != null) equipment.setChestplate(chestplate);
+				if (!defaultEquipment || leggings != null) equipment.setLeggings(leggings);
+				if (!defaultEquipment || boots != null) equipment.setBoots(boots);
 
 				if (livingEntity instanceof Mob) {
 					equipment.setItemInMainHandDropChance(mainHandItemDropChance.get(data) / 100);

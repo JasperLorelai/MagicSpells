@@ -79,45 +79,38 @@ public class TotemSpell extends TargetedSpell implements TargetedLocationSpell {
 		MagicItem magicMainHandItem = MagicItems.getMagicItemFromString(getConfigString("main-hand", ""));
 		if (magicMainHandItem != null) {
 			mainHand = magicMainHandItem.getItemStack();
-			if (mainHand != null && mainHand.getType().isAir()) mainHand = null;
+			mainHand.setAmount(1);
 		}
 
 		MagicItem magicOffHandItem = MagicItems.getMagicItemFromString(getConfigString("off-hand", ""));
 		if (magicOffHandItem != null) {
 			offHand = magicOffHandItem.getItemStack();
-			if (offHand != null && offHand.getType().isAir()) offHand = null;
+			offHand.setAmount(1);
 		}
 
 		MagicItem magicHelmetItem = MagicItems.getMagicItemFromString(getConfigString("helmet", ""));
 		if (magicHelmetItem != null) {
 			helmet = magicHelmetItem.getItemStack();
-			if (helmet != null && helmet.getType().isAir()) helmet = null;
+			helmet.setAmount(1);
 		}
 
 		MagicItem magicChestplateItem = MagicItems.getMagicItemFromString(getConfigString("chestplate", ""));
 		if (magicChestplateItem != null) {
 			chestplate = magicChestplateItem.getItemStack();
-			if (chestplate != null && chestplate.getType().isAir()) chestplate = null;
+			chestplate.setAmount(1);
 		}
 
 		MagicItem magicLeggingsItem = MagicItems.getMagicItemFromString(getConfigString("leggings", ""));
 		if (magicLeggingsItem != null) {
 			leggings = magicLeggingsItem.getItemStack();
-			if (leggings != null && leggings.getType().isAir()) leggings = null;
+			leggings.setAmount(1);
 		}
 
 		MagicItem magicBootsItem = MagicItems.getMagicItemFromString(getConfigString("boots", ""));
 		if (magicBootsItem != null) {
 			boots = magicBootsItem.getItemStack();
-			if (boots != null && boots.getType().isAir()) boots = null;
+			boots.setAmount(1);
 		}
-
-		if (mainHand != null) mainHand.setAmount(1);
-		if (offHand != null) offHand.setAmount(1);
-		if (helmet != null) helmet.setAmount(1);
-		if (chestplate != null) chestplate.setAmount(1);
-		if (leggings != null) leggings.setAmount(1);
-		if (boots != null) boots.setAmount(1);
 
 		yOffset = getConfigDataInt("y-offset", 0);
 		interval = getConfigDataInt("interval", 30);
