@@ -51,7 +51,7 @@ public class PickupItemListener extends PassiveListener {
 		if (!items.isEmpty()) {
 			ItemStack item = event.getItem().getItemStack();
 			MagicItemData itemData = MagicItems.getMagicItemDataFromItemStack(item);
-			if (itemData == null || !contains(itemData)) return;
+			if (!contains(itemData)) return;
 		}
 
 		boolean casted = passiveSpell.activate(caster);

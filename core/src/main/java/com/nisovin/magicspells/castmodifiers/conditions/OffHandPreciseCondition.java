@@ -41,10 +41,9 @@ public class OffHandPreciseCondition extends Condition {
 	private boolean offHand(LivingEntity target) {
 		EntityEquipment equipment = target.getEquipment();
 		if (equipment == null) return false;
-		ItemStack item = equipment.getItemInOffHand();
 
+		ItemStack item = equipment.getItemInOffHand();
 		MagicItemData data = MagicItems.getMagicItemDataFromItemStack(item);
-		if (data == null) return false;
 
 		return itemData.matches(data);
 	}

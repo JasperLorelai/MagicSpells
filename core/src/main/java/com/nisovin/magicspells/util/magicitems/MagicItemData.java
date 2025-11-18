@@ -38,6 +38,12 @@ public class MagicItemData {
 	private boolean strictBlockData = true;
 	private boolean strictEnchants = true;
 
+	public boolean isEmpty() {
+		Material type = (Material) itemAttributes.get(MagicItemAttribute.TYPE);
+		Integer amount = (Integer) itemAttributes.get(MagicItemAttribute.AMOUNT);
+		return type == null || type.isEmpty() || amount == null || amount == 0;
+	}
+
 	public Object getAttribute(MagicItemAttribute attr) {
 		return itemAttributes.get(attr);
 	}

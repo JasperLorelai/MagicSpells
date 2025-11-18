@@ -7,11 +7,13 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Collection;
 
+import org.jetbrains.annotations.NotNull;
+
 import com.nisovin.magicspells.util.magicitems.MagicItemData;
 import com.nisovin.magicspells.util.magicitems.MagicItemData.MagicItemAttribute;
 
 public class SpellReagents {
-	
+
 	private Set<ReagentItem> items;
 	private int mana;
 	private int hunger;
@@ -21,19 +23,10 @@ public class SpellReagents {
 	private float money;
 	private double health;
 	private Map<String, Double> variables;
-	
+
 	public SpellReagents() {
-		items = null;
-		mana = 0;
-		health = 0;
-		hunger = 0;
-		experience = 0;
-		levels = 0;
-		durability = 0;
-		money = 0;
-		variables = null;
 	}
-	
+
 	public SpellReagents(SpellReagents other) {
 		if (other.items != null) {
 			items = new HashSet<>();
@@ -51,99 +44,99 @@ public class SpellReagents {
 			variables.putAll(other.variables);
 		}
 	}
-	
+
 	public Set<ReagentItem> getItems() {
 		return items;
 	}
-	
+
 	public ReagentItem[] getItemsAsArray() {
 		if (items == null || items.isEmpty()) return null;
 		ReagentItem[] arr = new ReagentItem[items.size()];
 		arr = items.toArray(arr);
 		return arr;
 	}
-	
+
 	public void setItems(Collection<ReagentItem> newItems) {
 		if (newItems == null || newItems.isEmpty()) items = null;
 		else items = new HashSet<>(newItems);
 	}
-	
+
 	// TODO can this safely be varargs?
 	public void setItems(ReagentItem[] newItems) {
 		if (newItems == null || newItems.length == 0) items = null;
 		else items = new HashSet<>(Arrays.asList(newItems));
 	}
-	
+
 	public void addItem(ReagentItem item) {
 		if (items == null) items = new HashSet<>();
 		items.add(item);
 	}
-	
+
 	public int getMana() {
 		return mana;
 	}
-	
+
 	public void setMana(int newMana) {
 		mana = newMana;
 	}
-	
+
 	public double getHealth() {
 		return health;
 	}
-	
+
 	public void setHealth(double newHealth) {
 		health = newHealth;
 	}
-	
+
 	public int getHunger() {
 		return hunger;
 	}
-	
+
 	public void setHunger(int newHunger) {
 		hunger = newHunger;
 	}
-	
+
 	public int getExperience() {
 		return experience;
 	}
-	
+
 	public void setExperience(int newExperience) {
 		experience = newExperience;
 	}
-	
+
 	public int getLevels() {
 		return levels;
 	}
-	
+
 	public void setLevels(int newLevels) {
 		levels = newLevels;
 	}
-	
+
 	public int getDurability() {
 		return durability;
 	}
-	
+
 	public void setDurability(int newDurability) {
 		durability = newDurability;
 	}
-	
+
 	public float getMoney() {
 		return money;
 	}
-	
+
 	public void setMoney(float newMoney) {
 		money = newMoney;
 	}
-	
+
 	public Map<String, Double> getVariables() {
 		return variables;
 	}
-	
+
 	public void addVariable(String var, double val) {
 		if (variables == null) variables = new HashMap<>();
 		variables.put(var, val);
 	}
-	
+
 	public void setVariables(Map<String, Double> newVariables) {
 		if (newVariables == null || newVariables.isEmpty()) variables = null;
 		else {
@@ -151,7 +144,7 @@ public class SpellReagents {
 			variables.putAll(newVariables);
 		}
 	}
-	
+
 	@Override
 	public SpellReagents clone() {
 		SpellReagents other = new SpellReagents();
@@ -174,7 +167,7 @@ public class SpellReagents {
 		}
 		return other;
 	}
-	
+
 	public SpellReagents multiply(float x) {
 		SpellReagents other = new SpellReagents();
 		if (items != null) {
@@ -200,7 +193,7 @@ public class SpellReagents {
 		}
 		return other;
 	}
-	
+
 	@Override
 	public String toString() {
 		return "SpellReagents:["
@@ -218,16 +211,19 @@ public class SpellReagents {
 
 	public static class ReagentItem {
 
+		@NotNull
 		private MagicItemData magicItemData;
+
 		private int amount;
 
-		public ReagentItem(MagicItemData magicItemData, int amount) {
+		public ReagentItem(@NotNull MagicItemData magicItemData, int amount) {
 			this.magicItemData = magicItemData.clone();
 			this.magicItemData.getIgnoredAttributes().add(MagicItemAttribute.AMOUNT);
 
 			this.amount = amount;
 		}
 
+		@NotNull
 		public MagicItemData getMagicItemData() {
 			return magicItemData;
 		}
@@ -236,7 +232,7 @@ public class SpellReagents {
 			return amount;
 		}
 
-		public void setItemData(MagicItemData magicItemData) {
+		public void setItemData(@NotNull MagicItemData magicItemData) {
 			this.magicItemData = magicItemData;
 		}
 
@@ -250,5 +246,5 @@ public class SpellReagents {
 		}
 
 	}
-	
+
 }

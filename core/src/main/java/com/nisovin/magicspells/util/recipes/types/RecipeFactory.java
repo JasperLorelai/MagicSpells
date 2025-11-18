@@ -74,7 +74,7 @@ public abstract class RecipeFactory<R extends CustomRecipe> {
 			}
 
 			MagicItem magicItem = getMagicItem(object);
-			if (magicItem == null || magicItem.getItemStack() == null) {
+			if (magicItem == null) {
 				MagicSpells.error("Invalid magic item defined for '%s' on custom recipe '%s'.".formatted(path, config.getName()));
 				return null;
 			}
@@ -100,7 +100,7 @@ public abstract class RecipeFactory<R extends CustomRecipe> {
 			}
 
 			MagicItem magicItem = getMagicItem(object);
-			if (magicItem == null || magicItem.getItemStack() == null) {
+			if (magicItem == null) {
 				MagicSpells.error("Invalid magic item listed on custom recipe '%s' at index %d of '%s'.".formatted(config.getName(), i, path));
 				return null;
 			}

@@ -76,7 +76,7 @@ public class MissArrowListener extends PassiveListener {
 			if (weapon == null) return;
 
 			MagicItemData itemData = MagicItems.getMagicItemDataFromItemStack(weapon);
-			if (itemData == null || !contains(itemData)) return;
+			if (!contains(itemData)) return;
 		}
 
 		passiveSpell.activate(caster, arrow.getLocation());

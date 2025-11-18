@@ -53,7 +53,7 @@ public class CraftListener extends PassiveListener {
 			if (item == null) return;
 
 			MagicItemData itemData = MagicItems.getMagicItemDataFromItemStack(item);
-			if (itemData == null || !contains(itemData)) return;
+			if (!contains(itemData)) return;
 		}
 
 		boolean casted = passiveSpell.activate(caster);

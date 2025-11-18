@@ -85,7 +85,7 @@ public class TakeDamageListener extends PassiveListener {
 			if (eq == null) return;
 
 			MagicItemData itemData = MagicItems.getMagicItemDataFromItemStack(eq.getItemInMainHand());
-			if (itemData == null || !contains(itemData)) return;
+			if (!contains(itemData)) return;
 		}
 
 		boolean casted = passiveSpell.activate(caster, attacker);

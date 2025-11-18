@@ -106,12 +106,7 @@ public class MenuSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 						MagicSpells.error("MenuSpell '" + internalName + "' has an invalid item listed in '" + optionName + "': " + itemName);
 						continue;
 					}
-					ItemStack itemStack = magicItem.getItemStack();
-					if (itemStack == null) {
-						MagicSpells.error("MenuSpell '" + internalName + "' has an invalid item listed in '" + optionName + "': " + itemName);
-						continue;
-					}
-					items.add(itemStack.clone());
+					items.add(magicItem.getItemStack().clone());
 				}
 				// Skip if list was invalid.
 				if (items.isEmpty()) {

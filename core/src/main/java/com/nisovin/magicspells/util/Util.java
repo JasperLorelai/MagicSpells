@@ -340,17 +340,14 @@ public class Util {
 	}
 
 	public static boolean removeFromInventory(Inventory inventory, SpellReagents.ReagentItem item) {
-		MagicItemData itemData = item.getMagicItemData();
-		if (itemData == null) return false;
-
 		int amt = item.getAmount();
-		MagicItemData magicData;
 		ItemStack[] items = inventory.getContents();
+
 		for (int i = 0; i < items.length; i++) {
 			if (items[i] == null) continue;
 
-			magicData = MagicItems.getMagicItemDataFromItemStack(items[i]);
-			if (magicData == null || !itemData.matches(magicData)) continue;
+			MagicItemData magicData = MagicItems.getMagicItemDataFromItemStack(items[i]);
+			if (!item.getMagicItemData().matches(magicData)) continue;
 
 			if (items[i].getAmount() > amt) {
 				items[i].setAmount(items[i].getAmount() - amt);
@@ -377,11 +374,8 @@ public class Util {
 	}
 
 	public static boolean removeFromInventory(EntityEquipment entityEquipment, SpellReagents.ReagentItem item) {
-		MagicItemData itemData = item.getMagicItemData();
-		if (itemData == null) return false;
-
 		int amt = item.getAmount();
-		MagicItemData magicData;
+
 		ItemStack[] armorContents = entityEquipment.getArmorContents();
 		ItemStack[] items = new ItemStack[6];
 		System.arraycopy(armorContents, 0, items, 0, 4);
@@ -391,8 +385,8 @@ public class Util {
 		for (int i = 0; i < items.length; i++) {
 			if (items[i] == null) continue;
 
-			magicData = MagicItems.getMagicItemDataFromItemStack(items[i]);
-			if (magicData == null || !itemData.matches(magicData)) continue;
+			MagicItemData magicData = MagicItems.getMagicItemDataFromItemStack(items[i]);
+			if (!item.getMagicItemData().matches(magicData)) continue;
 
 			if (items[i].getAmount() > amt) {
 				items[i].setAmount(items[i].getAmount() - amt);

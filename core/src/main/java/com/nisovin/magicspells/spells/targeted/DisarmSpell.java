@@ -88,11 +88,11 @@ public class DisarmSpell extends TargetedSpell implements TargetedEntitySpell {
 		LivingEntity target = data.target();
 
 		ItemStack inHand = getItemInHand(target);
-		if (inHand == null) return noTarget(strInvalidItem, data);
+		if (inHand == null || inHand.isEmpty()) return noTarget(strInvalidItem, data);
 
 		if (disarmable != null) {
 			MagicItemData itemData = MagicItems.getMagicItemDataFromItemStack(inHand);
-			if (itemData == null || !contains(itemData)) return noTarget(strInvalidItem, data);
+			if (!contains(itemData)) return noTarget(strInvalidItem, data);
 		}
 
 		int disarmDuration = this.disarmDuration.get(data);

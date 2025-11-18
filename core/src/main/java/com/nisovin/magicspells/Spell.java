@@ -271,12 +271,7 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 					continue;
 				}
 
-				ItemStack item = magicItem.getItemStack();
-				if (item == null) {
-					MagicSpells.error("Spell '" + internalName + "' has an invalid bindable cast item specified: " + str);
-					continue;
-				}
-				bindableItems.add(new CastItem(item));
+				bindableItems.add(new CastItem(magicItem.getItemStack()));
 			}
 		}
 		String iconStr = config.getString(internalKey + "spell-icon", null);
@@ -284,7 +279,7 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 			MagicItem magicItem = MagicItems.getMagicItemFromString(iconStr);
 			if (magicItem != null) {
 				spellIcon = magicItem.getItemStack();
-				if (spellIcon != null && !spellIcon.getType().isAir()) {
+				if (!spellIcon.isEmpty()) {
 					if (!magicItem.getMagicItemData().hasAttribute(MagicItemData.MagicItemAttribute.NAME)) {
 						ItemMeta iconMeta = spellIcon.getItemMeta();
 						iconMeta.displayName(Component.text(MagicSpells.getTextColor() + name));

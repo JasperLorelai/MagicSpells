@@ -86,7 +86,7 @@ public class BlockBeamSpell extends InstantSpell implements TargetedLocationSpel
 
 		String item = getConfigString("block-type", "stone");
 		MagicItem magicItem = MagicItems.getMagicItemFromString(item);
-		if (magicItem != null && magicItem.getItemStack() != null) headItem = magicItem.getItemStack();
+		if (magicItem != null) headItem = magicItem.getItemStack();
 		else MagicSpells.error("BlockBeamSpell '" + internalName + "' has an invalid 'block-type' defined!");
 
 		relativeOffset = getConfigDataVector("relative-offset", new Vector(0, 0.5, 0));

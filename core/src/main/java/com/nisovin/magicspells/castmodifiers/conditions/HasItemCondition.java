@@ -103,13 +103,13 @@ public class HasItemCondition extends Condition {
 		return inventory.contains(material);
 	}
 
-	private boolean checkEquipment(EntityEquipment entityEquipment) {
-		if (entityEquipment == null) return false;
-		ItemStack[] items = InventoryUtil.getEquipmentItems(entityEquipment);
+	private boolean checkEquipment(EntityEquipment equipment) {
+		if (equipment == null) return false;
+		ItemStack[] items = InventoryUtil.getEquipmentItems(equipment);
 
 		if (checkName) {
 			for (ItemStack item : items) {
-				if (item == null) continue;
+				if (item.isEmpty()) continue;
 				Component itemName = null;
 				try {
 					if (item.hasItemMeta() && item.getItemMeta().hasDisplayName()) itemName = item.getItemMeta().displayName();

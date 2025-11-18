@@ -46,7 +46,6 @@ public class HoveringWithCondition extends Condition {
 		if (itemCursor.isEmpty()) return false;
 
 		MagicItemData cursorData = MagicItems.getMagicItemDataFromItemStack(itemCursor);
-		if (cursorData == null) return false;
 
 		return itemData.matches(cursorData);
 	}

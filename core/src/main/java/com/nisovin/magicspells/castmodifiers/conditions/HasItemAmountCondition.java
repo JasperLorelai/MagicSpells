@@ -64,7 +64,6 @@ public class HasItemAmountCondition extends OperatorCondition {
 		for (ItemStack item : items) {
 			if (item == null) continue;
 			MagicItemData data = MagicItems.getMagicItemDataFromItemStack(item);
-			if (data == null) continue;
 			if (!itemData.matches(data)) continue;
 
 			counted += item.getAmount();

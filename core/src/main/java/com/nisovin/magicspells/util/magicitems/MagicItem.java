@@ -2,30 +2,18 @@ package com.nisovin.magicspells.util.magicitems;
 
 import org.bukkit.inventory.ItemStack;
 
-public class MagicItem {
+import org.jetbrains.annotations.NotNull;
 
-	private ItemStack itemStack;
-	private MagicItemData magicItemData;
+public record MagicItem(@NotNull ItemStack itemStack, @NotNull MagicItemData magicItemData) {
 
-	public MagicItem(ItemStack itemStack, MagicItemData magicItemData) {
-		this.itemStack = itemStack;
-		this.magicItemData = magicItemData;
-	}
-
+	@NotNull
 	public ItemStack getItemStack() {
 		return itemStack;
 	}
 
+	@NotNull
 	public MagicItemData getMagicItemData() {
 		return magicItemData;
-	}
-
-	public void setItemStack(ItemStack itemStack) {
-		this.itemStack = itemStack;
-	}
-
-	public void setMagicItemData(MagicItemData magicItemData) {
-		this.magicItemData = magicItemData;
 	}
 
 	@Override

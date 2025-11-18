@@ -35,8 +35,8 @@ public class UnequipListener extends PassiveListener {
 			s = s.trim();
 
 			MagicItemData itemData = MagicItems.getMagicItemDataFromString(s);
-			if (itemData == null) {
-				MagicSpells.error("Invalid magic item '" + s + "' in unequip trigger on passive spell '" + passiveSpell.getInternalName() + "'");
+			if (itemData == null || itemData.isEmpty()) {
+				MagicSpells.error("Invalid magic item '" + s + "' in 'unequip' trigger on passive spell '" + passiveSpell.getInternalName() + "'");
 				continue;
 			}
 
@@ -63,10 +63,7 @@ public class UnequipListener extends PassiveListener {
 				if (oldItem.isEmpty()) return;
 
 				MagicItemData oldData = MagicItems.getMagicItemDataFromItemStack(oldItem);
-				if (oldData == null) return;
-
-				ItemStack newItem = change.newItem();
-				MagicItemData newData = MagicItems.getMagicItemDataFromItemStack(newItem);
+				MagicItemData newData = MagicItems.getMagicItemDataFromItemStack(change.newItem());
 
 				if (contains(oldData, newData)) {
 					check = true;
@@ -82,7 +79,7 @@ public class UnequipListener extends PassiveListener {
 
 	private boolean contains(MagicItemData oldData, MagicItemData newData) {
 		for (MagicItemData data : items)
-			if (data.matches(oldData) && (newData == null || !data.matches(newData)))
+			if (data.matches(oldData) && (newData.isEmpty() || !data.matches(newData)))
 				return true;
 
 		return false;

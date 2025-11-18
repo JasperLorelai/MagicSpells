@@ -6,7 +6,9 @@ import java.time.Duration;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 
-import net.kyori.adventure.text.Component;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.Contract;
 
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemFlag;
@@ -23,49 +25,71 @@ import com.nisovin.magicspells.handlers.DebugHandler;
 import com.nisovin.magicspells.handlers.EnchantmentHandler;
 import com.nisovin.magicspells.util.magicitems.MagicItemData.MagicItemAttribute;
 import com.nisovin.magicspells.util.itemreader.alternative.AlternativeReaderManager;
+
 import static com.nisovin.magicspells.util.magicitems.MagicItemData.MagicItemAttribute.*;
 
 public class MagicItems {
 
 	private static final Map<String, MagicItem> magicItems = new HashMap<>();
 
-	private static final Cache<ItemStack, MagicItemData> itemStackCache = Caffeine.newBuilder()
+	private static final Cache<@NotNull ItemStack, MagicItemData> itemStackCache = Caffeine.newBuilder()
 		.expireAfterAccess(Duration.ofMinutes(5))
 		.maximumSize(10000)
 		.build();
 
+	/**
+	 * @return Internal mutable instances.
+	 */
 	public static Map<String, MagicItem> getMagicItems() {
 		return magicItems;
 	}
 
+	/**
+	 * @return Internal mutable instance.
+	 */
 	public static Collection<String> getMagicItemKeys() {
 		return magicItems.keySet();
 	}
 
+	/**
+	 * @return Internal mutable instance.
+	 */
 	public static Collection<MagicItem> getMagicItemValues() {
 		return magicItems.values();
 	}
 
-	public static MagicItem getMagicItemByInternalName(String internalName) {
-		if (!magicItems.containsKey(internalName)) return null;
-		if (magicItems.get(internalName) == null) return null;
-		return magicItems.get(internalName);
+	/**
+	 * @return Internal mutable instance.
+	 */
+	@Nullable
+	public static MagicItem getMagicItemByInternalName(@NotNull String internalName) {
+		return internalName.isBlank() ? null : magicItems.get(internalName);
 	}
 
-	public static ItemStack getItemByInternalName(String internalName) {
-		if (!magicItems.containsKey(internalName)) return null;
-		if (magicItems.get(internalName) == null) return null;
-		if (magicItems.get(internalName).getItemStack() == null) return null;
-		return magicItems.get(internalName).getItemStack().clone();
+	/**
+	 * @return Cloned item.
+	 */
+	@Nullable
+	public static ItemStack getItemByInternalName(@NotNull String internalName) {
+		MagicItem magicItem = getMagicItemByInternalName(internalName);
+		return magicItem == null ? null : magicItem.getItemStack().clone();
 	}
 
-	public static MagicItemData getMagicItemDataByInternalName(String internalName) {
-		if (!magicItems.containsKey(internalName)) return null;
-		if (magicItems.get(internalName) == null) return null;
-		return magicItems.get(internalName).getMagicItemData();
+	/**
+	 * @return Internal mutable instance.
+	 */
+	@Nullable
+	public static MagicItemData getMagicItemDataByInternalName(@NotNull String internalName) {
+		MagicItem magicItem = getMagicItemByInternalName(internalName);
+		return magicItem == null ? null : magicItem.getMagicItemData();
 	}
 
-	public static MagicItemData getMagicItemDataFromItemStack(ItemStack item) {
+	/**
+	 * @return New {@link MagicItemData} or cached instance.
+	 */
+	@Nullable
+	@Contract("null -> null; !null -> !null")
+	public static MagicItemData getMagicItemDataFromItemStack(@Nullable ItemStack item) {
 		if (item == null) return null;
 
 		MagicItemData data = itemStackCache.getIfPresent(item);
@@ -156,26 +180,28 @@ public class MagicItems {
 		return data;
 	}
 
-	public static MagicItemData getMagicItemDataFromString(String str) {
-		if (str == null) return null;
-		if (magicItems.containsKey(str)) return magicItems.get(str).getMagicItemData();
+	@Nullable
+	public static MagicItemData getMagicItemDataFromString(@Nullable String str) {
+		if (str == null || str.isBlank()) return null;
+
+		MagicItemData data = getMagicItemDataByInternalName(str);
+		if (data != null) return data;
 
 		return MagicItemDataParser.parseMagicItemData(str);
 	}
 
-	public static MagicItem getMagicItemFromString(String str) {
-		if (str == null) return null;
-		if (magicItems.containsKey(str)) return magicItems.get(str);
+	@Nullable
+	public static MagicItem getMagicItemFromString(@Nullable String str) {
+		if (str == null || str.isBlank()) return null;
 
-		MagicItem magicItem;
-		MagicItemData itemData = MagicItemDataParser.parseMagicItemData(str);
-		if (itemData == null) return null;
+		MagicItem item = getMagicItemByInternalName(str);
+		if (item != null) return item;
 
-		magicItem = getMagicItemFromData(itemData);
-		return magicItem;
+		return getMagicItemFromData(MagicItemDataParser.parseMagicItemData(str));
 	}
 
-	public static MagicItem getMagicItemFromData(MagicItemData data) {
+	@Nullable
+	public static MagicItem getMagicItemFromData(@Nullable MagicItemData data) {
 		if (data == null) return null;
 
 		Material type = (Material) data.getAttribute(TYPE);
@@ -266,7 +292,11 @@ public class MagicItems {
 		return new MagicItem(item, data);
 	}
 
-	public static MagicItem getMagicItemFromSection(ConfigurationSection section) {
+	/**
+	 * @return New {@link MagicItem}.
+	 */
+	@Nullable
+	public static MagicItem getMagicItemFromSection(@NotNull ConfigurationSection section) {
 		try {
 			// It MUST have a type option
 			if (!section.contains("type")) return null;

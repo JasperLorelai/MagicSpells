@@ -232,8 +232,8 @@ public class BowSpell extends Spell {
 		if (disallowedBowItems != null && check(bow, disallowedBowItems)) return;
 
 		ItemStack ammo = event.getConsumable();
-		if (ammoItems != null && !check(ammo, ammoItems)) return;
-		if (disallowedAmmoItems != null && check(ammo, disallowedAmmoItems)) return;
+		if (ammoItems != null && (ammo == null || !check(ammo, ammoItems))) return;
+		if (disallowedAmmoItems != null && ammo != null && check(ammo, disallowedAmmoItems)) return;
 
 		SpellCastEvent castEvent = preCast(data);
 		if (castEvent.isCancelled()) {

@@ -47,23 +47,21 @@ public class HasItemPreciseCondition extends Condition {
 	}
 
 	private boolean checkInventory(Inventory inventory) {
-		if (inventory == null) return false;
-
-		for (ItemStack itemStack : inventory.getContents()) {
-			MagicItemData data = MagicItems.getMagicItemDataFromItemStack(itemStack);
-			if (data == null) continue;
+		for (ItemStack item : inventory.getContents()) {
+			if (item == null) continue;
+			MagicItemData data = MagicItems.getMagicItemDataFromItemStack(item);
 			if (itemData.matches(data)) return true;
 		}
 
 		return false;
 	}
 
-	private boolean checkEquipment(EntityEquipment entityEquipment) {
-		if (entityEquipment == null) return false;
+	private boolean checkEquipment(EntityEquipment equipment) {
+		if (equipment == null) return false;
 
-		for (ItemStack itemStack : InventoryUtil.getEquipmentItems(entityEquipment)) {
-			MagicItemData data = MagicItems.getMagicItemDataFromItemStack(itemStack);
-			if (data == null) continue;
+		for (ItemStack item : InventoryUtil.getEquipmentItems(equipment)) {
+			if (item.isEmpty()) continue;
+			MagicItemData data = MagicItems.getMagicItemDataFromItemStack(item);
 			if (itemData.matches(data)) return true;
 		}
 
