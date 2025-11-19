@@ -10,6 +10,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.EventHandler;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerToggleSneakEvent;
 import org.bukkit.event.player.PlayerToggleFlightEvent;
@@ -114,9 +115,10 @@ public class DanceCastListener implements Listener {
 	// DEBUG INFO: level 2, player playername performance dance sequence sequence
 	@EventHandler
 	public void onInteract(PlayerInteractEvent event) {
-		if (!event.hasItem()) return;
+		ItemStack item = event.getItem();
+		if (item == null) return;
 		if (danceCastWand == null) return;
-		if (!danceCastWand.equals(new CastItem(event.getItem()))) return;
+		if (!danceCastWand.equals(new CastItem(item))) return;
 		
 		Action action = event.getAction();
 		Player player = event.getPlayer();

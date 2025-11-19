@@ -8,6 +8,9 @@ import java.util.stream.Collectors;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import org.bukkit.Color;
 import org.bukkit.Material;
 import org.bukkit.potion.PotionType;
@@ -26,6 +29,7 @@ import com.nisovin.magicspells.util.itemreader.PotionHandler;
 import com.nisovin.magicspells.util.itemreader.DurabilityHandler;
 import com.nisovin.magicspells.util.itemreader.WrittenBookHandler;
 import com.nisovin.magicspells.util.itemreader.LeatherArmorHandler;
+
 import static com.nisovin.magicspells.util.magicitems.MagicItemData.MagicItemAttribute.*;
 
 public class CastItem {
@@ -50,8 +54,7 @@ public class CastItem {
 
 	}
 
-	public CastItem(ItemStack item) {
-		if (item == null) throw new NullPointerException("itemStack");
+	public CastItem(@NotNull ItemStack item) {
 		ItemMeta meta = item.getItemMeta();
 
 		type = item.getType();
@@ -78,7 +81,7 @@ public class CastItem {
 		}
 	}
 
-	public CastItem(String string) {
+	public CastItem(@Nullable String string) {
 		MagicItemData data = MagicItems.getMagicItemDataFromString(string);
 		if (data != null) {
 			type = (Material) data.getAttribute(TYPE);

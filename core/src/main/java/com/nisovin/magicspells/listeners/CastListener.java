@@ -164,7 +164,8 @@ public class CastListener implements Listener {
 		}
 
 		Spellbook spellbook = MagicSpells.getSpellbook(player);
-		Spell spell = spellbook.getActiveSpell(player.getInventory().getItem(event.getNewSlot()));
+		ItemStack item = player.getInventory().getItem(event.getNewSlot());
+		Spell spell = item == null ? null : spellbook.getActiveSpell(item);
 		if (spell != null) showIcon(player, MagicSpells.getSpellIconSlot(), spell.getSpellIcon());
 		else showIcon(player, MagicSpells.getSpellIconSlot(), null);
 	}
