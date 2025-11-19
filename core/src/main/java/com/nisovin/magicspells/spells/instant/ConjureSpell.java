@@ -33,7 +33,6 @@ import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.spells.InstantSpell;
 import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.spells.command.TomeSpell;
-import com.nisovin.magicspells.util.magicitems.MagicItem;
 import com.nisovin.magicspells.util.magicitems.MagicItems;
 import com.nisovin.magicspells.spells.TargetedEntitySpell;
 import com.nisovin.magicspells.spells.command.ScrollSpell;
@@ -174,9 +173,9 @@ public class ConjureSpell extends InstantSpell implements TargetedEntitySpell, T
 						int uses = scrollData.length > 3 ? Integer.parseInt(scrollData[3].trim()) : -1;
 						itemTypes[i] = scrollSpell.createScroll(spell, uses, null);
 					} else {
-						MagicItem magicItem = MagicItems.getMagicItemFromString(strItemData);
-						if (magicItem == null) continue;
-						itemTypes[i] = magicItem.getItemStack();
+						ItemStack item = MagicItems.getItemFromString(strItemData);
+						if (item == null) continue;
+						itemTypes[i] = item;
 					}
 
 					int minAmount = 1;

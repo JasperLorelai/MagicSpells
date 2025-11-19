@@ -13,7 +13,6 @@ import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.spelleffects.SpellEffect;
-import com.nisovin.magicspells.util.magicitems.MagicItem;
 import com.nisovin.magicspells.util.config.ConfigDataUtil;
 import com.nisovin.magicspells.util.magicitems.MagicItems;
 
@@ -35,9 +34,8 @@ public class ToastEffect extends SpellEffect {
 		frame = ConfigDataUtil.getEnum(config, "frame", Frame.class, Frame.TASK);
 
 		String magicItemString = config.getString("icon", "air");
-		MagicItem magicItem = MagicItems.getMagicItemFromString(magicItemString);
-		if (magicItem == null) MagicSpells.error("Invalid toast effect icon specified: '" + magicItemString + "'");
-		else icon = magicItem.getItemStack();
+		icon = MagicItems.getItemFromString(magicItemString);
+		if (icon == null) MagicSpells.error("Invalid toast effect icon specified: '" + magicItemString + "'");
 
 		broadcast = ConfigDataUtil.getBoolean(config, "broadcast", false);
 		useViewerAsTarget = ConfigDataUtil.getBoolean(config, "use-viewer-as-target", false);

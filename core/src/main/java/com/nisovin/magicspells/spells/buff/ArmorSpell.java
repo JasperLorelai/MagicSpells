@@ -36,7 +36,6 @@ import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.spells.BuffSpell;
 import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.util.config.ConfigData;
-import com.nisovin.magicspells.util.magicitems.MagicItem;
 import com.nisovin.magicspells.util.magicitems.MagicItems;
 
 public class ArmorSpell extends BuffSpell {
@@ -80,10 +79,8 @@ public class ArmorSpell extends BuffSpell {
 	private ItemStack getItem(String s) {
 		if (s.isEmpty()) return null;
 
-		MagicItem magicItem = MagicItems.getMagicItemFromString(s);
-		if (magicItem == null) return null;
-
-		ItemStack item = magicItem.getItemStack().clone();
+		ItemStack item = MagicItems.getItemFromString(s);
+		if (item == null) return null;
 		item.setAmount(1);
 		if (!permanent)
 			item.editMeta(meta -> meta.getPersistentDataContainer().set(MARKER, PersistentDataType.STRING, internalName));

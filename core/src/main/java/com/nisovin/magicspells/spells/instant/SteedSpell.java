@@ -31,7 +31,6 @@ import com.nisovin.magicspells.Subspell;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.spells.InstantSpell;
 import com.nisovin.magicspells.util.config.ConfigData;
-import com.nisovin.magicspells.util.magicitems.MagicItem;
 import com.nisovin.magicspells.util.magicitems.MagicItems;
 import com.nisovin.magicspells.spelleffects.EffectPosition;
 
@@ -76,11 +75,10 @@ public class SteedSpell extends InstantSpell {
 		color = getConfigDataEnum("color", Horse.Color.class, null);
 		style = getConfigDataEnum("style", Horse.Style.class, null);
 
-		String armor = getConfigString("armor", null);
-		if (armor != null) {
-			MagicItem magicItem = MagicItems.getMagicItemFromString(armor);
-			if (magicItem != null) this.armor = magicItem.getItemStack();
-			else MagicSpells.error("Invalid magic item '" + armor + "' in SteedSpell '" + internalName + "'.");
+		String armorStr = getConfigString("armor", null);
+		if (armorStr != null) {
+			armor = MagicItems.getItemFromString(armorStr);
+			if (armor == null) MagicSpells.error("Invalid magic item '" + armorStr + "' in SteedSpell '" + internalName + "'.");
 		}
 	}
 

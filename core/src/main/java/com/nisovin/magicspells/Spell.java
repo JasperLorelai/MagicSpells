@@ -265,13 +265,13 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 		if (bindables != null) {
 			bindableItems = new HashSet<>();
 			for (String str : bindables) {
-				MagicItem magicItem = MagicItems.getMagicItemFromString(str);
-				if (magicItem == null) {
+				ItemStack item = MagicItems.getItemFromString(str);
+				if (item == null) {
 					MagicSpells.error("Spell '" + internalName + "' has an invalid bindable cast item specified: " + str);
 					continue;
 				}
 
-				bindableItems.add(new CastItem(magicItem.getItemStack()));
+				bindableItems.add(new CastItem(item));
 			}
 		}
 		String iconStr = config.getString(internalKey + "spell-icon", null);
@@ -2154,8 +2154,7 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 
 		CastItem[] castItems = new CastItem[items.length];
 		for (int i = 0; i < items.length; i++) {
-			MagicItem magicItem = MagicItems.getMagicItemFromString(items[i]);
-			ItemStack item = magicItem == null ? null : magicItem.getItemStack();
+			ItemStack item = MagicItems.getItemFromString(items[i]);
 			if (item == null) {
 				MagicSpells.error("Spell '" + internalName + "' has an invalid " + errorOptionName + " specified: " + items[i]);
 				continue;

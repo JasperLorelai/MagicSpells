@@ -30,7 +30,6 @@ import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.spells.BuffSpell;
 import com.nisovin.magicspells.events.SpellTargetEvent;
 import com.nisovin.magicspells.util.config.ConfigData;
-import com.nisovin.magicspells.util.magicitems.MagicItem;
 import com.nisovin.magicspells.util.magicitems.MagicItems;
 import com.nisovin.magicspells.handlers.PotionEffectHandler;
 import com.nisovin.magicspells.util.itemreader.AttributeHandler;
@@ -146,41 +145,23 @@ public class MinionSpell extends BuffSpell {
 			attributes = AttributeHandler.getAttributeModifiers(attributeList, internalName);
 
 		// Equipment
-		MagicItem magicMainHandItem = MagicItems.getMagicItemFromString(getConfigString("main-hand", ""));
-		if (magicMainHandItem != null) {
-			mainHandItem = magicMainHandItem.getItemStack();
-			mainHandItem.setAmount(1);
-		}
+		mainHandItem = MagicItems.getItemFromString(getConfigString("main-hand", ""));
+		if (mainHandItem != null) mainHandItem.setAmount(1);
 
-		MagicItem magicOffHandItem = MagicItems.getMagicItemFromString(getConfigString("off-hand", ""));
-		if (magicOffHandItem != null) {
-			offHandItem = magicOffHandItem.getItemStack();
-			offHandItem.setAmount(1);
-		}
+		offHandItem = MagicItems.getItemFromString(getConfigString("off-hand", ""));
+		if (offHandItem != null) offHandItem.setAmount(1);
 
-		MagicItem magicHelmetItem = MagicItems.getMagicItemFromString(getConfigString("helmet", ""));
-		if (magicHelmetItem != null) {
-			helmet = magicHelmetItem.getItemStack();
-			helmet.setAmount(1);
-		}
+		helmet = MagicItems.getItemFromString(getConfigString("helmet", ""));
+		if (helmet != null) helmet.setAmount(1);
 
-		MagicItem magicChestplateItem = MagicItems.getMagicItemFromString(getConfigString("chestplate", ""));
-		if (magicChestplateItem != null) {
-			chestplate = magicChestplateItem.getItemStack();
-			chestplate.setAmount(1);
-		}
+		chestplate = MagicItems.getItemFromString(getConfigString("chestplate", ""));
+		if (chestplate != null) chestplate.setAmount(1);
 
-		MagicItem magicLeggingsItem = MagicItems.getMagicItemFromString(getConfigString("leggings", ""));
-		if (magicLeggingsItem != null) {
-			leggings = magicLeggingsItem.getItemStack();
-			leggings.setAmount(1);
-		}
+		leggings = MagicItems.getItemFromString(getConfigString("leggings", ""));
+		if (leggings != null) leggings.setAmount(1);
 
-		MagicItem magicBootsItem = MagicItems.getMagicItemFromString(getConfigString("boots", ""));
-		if (magicBootsItem != null) {
-			boots = magicBootsItem.getItemStack();
-			boots.setAmount(1);
-		}
+		boots = MagicItems.getItemFromString(getConfigString("boots", ""));
+		if (boots != null) boots.setAmount(1);
 
 		// Minion target list
 		minionTargetList = new ValidTargetList(this, getConfigStringList("minion-targets", null));

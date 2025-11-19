@@ -76,10 +76,9 @@ public class MagicItemDataParser {
 
 			if (type.isAir()) return data;
 		} else {
-			MagicItem magicItem = MagicItems.getMagicItems().get(base);
-			if (magicItem == null) return null;
-			data = magicItem.getMagicItemData().clone();
-
+			MagicItemData item = MagicItems.getMagicItemDataByInternalName(base);
+			if (item == null) return null;
+			data = item.clone();
 			if (data.hasAttribute(TYPE) && ((Material) data.getAttribute(TYPE)).isAir()) return data;
 		}
 

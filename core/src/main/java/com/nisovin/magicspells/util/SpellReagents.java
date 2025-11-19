@@ -10,7 +10,6 @@ import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
 
 import com.nisovin.magicspells.util.magicitems.MagicItemData;
-import com.nisovin.magicspells.util.magicitems.MagicItemData.MagicItemAttribute;
 
 public class SpellReagents {
 
@@ -217,9 +216,7 @@ public class SpellReagents {
 		private int amount;
 
 		public ReagentItem(@NotNull MagicItemData magicItemData, int amount) {
-			this.magicItemData = magicItemData.clone();
-			this.magicItemData.getIgnoredAttributes().add(MagicItemAttribute.AMOUNT);
-
+			this.magicItemData = magicItemData.withIgnoredAmount();
 			this.amount = amount;
 		}
 

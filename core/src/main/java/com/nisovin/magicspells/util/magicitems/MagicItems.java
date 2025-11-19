@@ -180,22 +180,37 @@ public class MagicItems {
 		return data;
 	}
 
+	/**
+	 * @return New {@link MagicItemData}.
+	 */
 	@Nullable
 	public static MagicItemData getMagicItemDataFromString(@Nullable String str) {
 		if (str == null || str.isBlank()) return null;
 
 		MagicItemData data = getMagicItemDataByInternalName(str);
-		if (data != null) return data;
+		if (data != null) return data.clone();
 
 		return MagicItemDataParser.parseMagicItemData(str);
 	}
 
+	/**
+	 * @return New {@link ItemStack}.
+	 */
+	@Nullable
+	public static ItemStack getItemFromString(@Nullable String str) {
+		MagicItem item = getMagicItemFromString(str);
+		return item == null ? null : item.getItemStack();
+	}
+
+	/**
+	 * @return New {@link MagicItem}.
+	 */
 	@Nullable
 	public static MagicItem getMagicItemFromString(@Nullable String str) {
 		if (str == null || str.isBlank()) return null;
 
 		MagicItem item = getMagicItemByInternalName(str);
-		if (item != null) return item;
+		if (item != null) return item.clone();
 
 		return getMagicItemFromData(MagicItemDataParser.parseMagicItemData(str));
 	}
@@ -290,6 +305,15 @@ public class MagicItems {
 		item.setItemMeta(meta);
 
 		return new MagicItem(item, data);
+	}
+
+	/**
+	 * @return New {@link ItemStack}.
+	 */
+	@Nullable
+	public static ItemStack getItemFromSection(@NotNull ConfigurationSection section) {
+		MagicItem item = getMagicItemFromSection(section);
+		return item == null ? null : item.getItemStack();
 	}
 
 	/**

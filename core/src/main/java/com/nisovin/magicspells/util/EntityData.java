@@ -44,7 +44,6 @@ import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.util.config.FunctionData;
-import com.nisovin.magicspells.util.magicitems.MagicItem;
 import com.nisovin.magicspells.util.config.ConfigDataUtil;
 import com.nisovin.magicspells.util.magicitems.MagicItems;
 import com.nisovin.magicspells.util.itemreader.AttributeHandler;
@@ -739,10 +738,8 @@ public class EntityData {
 		try {
 			return Bukkit.getItemFactory().createItemStack(string);
 		} catch (IllegalArgumentException ignored) {
+			return MagicItems.getItemFromString(string);
 		}
-
-		MagicItem magicItem = MagicItems.getMagicItemFromString(string);
-		return magicItem == null ? null : magicItem.getItemStack();
 	}
 
 	private void addOptEquipment(Multimap<Class<?>, Transformer<?>> transformers, ConfigurationSection config, String name, EquipmentSlot slot) {

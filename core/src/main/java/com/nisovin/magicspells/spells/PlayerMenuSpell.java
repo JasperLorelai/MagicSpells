@@ -28,7 +28,6 @@ import com.nisovin.magicspells.Subspell;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.castmodifiers.ModifierSet;
-import com.nisovin.magicspells.util.magicitems.MagicItem;
 import com.nisovin.magicspells.util.magicitems.MagicItems;
 import com.nisovin.magicspells.spelleffects.EffectPosition;
 
@@ -191,10 +190,10 @@ public class PlayerMenuSpell extends TargetedSpell implements TargetedEntitySpel
 	}
 
 	private ItemStack createItem(String path, String defaultName) {
-		MagicItem magicItem = MagicItems.getMagicItemFromString(getConfigString(path, null));
-		if (magicItem != null) return magicItem.getItemStack().clone();
+		ItemStack item = MagicItems.getItemFromString(getConfigString(path, null));
+		if (item != null) return item;
 
-		ItemStack item = new ItemStack(Material.GREEN_WOOL);
+		item = new ItemStack(Material.GREEN_WOOL);
 		Component name = Component.text(defaultName).color(NamedTextColor.GOLD).decoration(TextDecoration.ITALIC, false);
 		item.editMeta(meta -> meta.displayName(name));
 

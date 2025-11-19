@@ -71,6 +71,11 @@ public class MagicItemData {
 		return ignoredAttributes;
 	}
 
+	public MagicItemData withIgnoredAmount() {
+		ignoredAttributes.add(MagicItemAttribute.AMOUNT);
+		return this;
+	}
+
 	public boolean isStrictEnchantLevel() {
 		return strictEnchantLevel;
 	}

@@ -16,7 +16,6 @@ import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.Subspell;
 import com.nisovin.magicspells.spells.InstantSpell;
 import com.nisovin.magicspells.util.config.ConfigData;
-import com.nisovin.magicspells.util.magicitems.MagicItem;
 import com.nisovin.magicspells.util.magicitems.MagicItems;
 import com.nisovin.magicspells.spelleffects.EffectPosition;
 import com.nisovin.magicspells.spells.TargetedLocationSpell;
@@ -67,8 +66,7 @@ public class ItemProjectileSpell extends InstantSpell implements TargetedLocatio
 
 		trackerSet = new HashSet<>();
 
-		MagicItem magicItem = MagicItems.getMagicItemFromString(getConfigString("item", "iron_sword"));
-		if (magicItem != null) item = magicItem.getItemStack();
+		item = MagicItems.getItemFromString(getConfigString("item", "iron_sword"));
 
 		spellDelay = getConfigDataInt("spell-delay", 40);
 		pickupDelay = getConfigDataInt("pickup-delay", 100);

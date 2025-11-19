@@ -22,7 +22,6 @@ import com.nisovin.magicspells.Spell;
 import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.spells.CommandSpell;
-import com.nisovin.magicspells.util.magicitems.MagicItem;
 import com.nisovin.magicspells.util.magicitems.MagicItems;
 
 public class KeybindSpell extends CommandSpell {
@@ -37,11 +36,8 @@ public class KeybindSpell extends CommandSpell {
 
 		playerKeybinds = new HashMap<>();
 
-		MagicItem magicWandItem = MagicItems.getMagicItemFromString(getConfigString("wand-item", "blaze_rod"));
-		if (magicWandItem != null) wandItem = magicWandItem.getItemStack();
-
-		MagicItem magicIconItem = MagicItems.getMagicItemFromString(getConfigString("default-spell-icon", "redstone"));
-		if (magicIconItem != null) defaultSpellIcon = magicIconItem.getItemStack();
+		wandItem = MagicItems.getItemFromString(getConfigString("wand-item", "blaze_rod"));
+		defaultSpellIcon = MagicItems.getItemFromString(getConfigString("default-spell-icon", "redstone"));
 	}
 
 	@Override
@@ -195,8 +191,8 @@ public class KeybindSpell extends CommandSpell {
 
 	private class Keybinds {
 
-		private Player player;
-		private Spell[] keybinds;
+		private final Player player;
+		private final Spell[] keybinds;
 
 		private Keybinds(Player player) {
 			this.player = player;

@@ -25,7 +25,6 @@ import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.spells.TargetedSpell;
 import com.nisovin.magicspells.util.compat.EventUtil;
 import com.nisovin.magicspells.util.config.ConfigData;
-import com.nisovin.magicspells.util.magicitems.MagicItem;
 import com.nisovin.magicspells.events.SpellPreImpactEvent;
 import com.nisovin.magicspells.util.magicitems.MagicItems;
 import com.nisovin.magicspells.spelleffects.EffectPosition;
@@ -83,11 +82,8 @@ public class VolleySpell extends TargetedSpell implements TargetedLocationSpell,
 		powerAffectsArrowCount = getConfigDataBoolean("power-affects-arrow-count", true);
 		resolveOptionsPerArrow = getConfigDataBoolean("resolve-options-per-arrow", false);
 
-		MagicItem magicItem = MagicItems.getMagicItemFromString(getConfigString("weapon", null));
-		weapon = magicItem == null ? null : magicItem.getItemStack().clone();
-
-		magicItem = MagicItems.getMagicItemFromString(getConfigString("arrow-item", null));
-		arrowItem = magicItem == null ? null : magicItem.getItemStack().clone();
+		weapon = MagicItems.getItemFromString(getConfigString("weapon", null));
+		arrowItem = MagicItems.getItemFromString(getConfigString("arrow-item", null));
 
 		color = getConfigDataColor("color", null);
 		potionType = getConfigDataRegistryEntry("potion-type", Registry.POTION, null);

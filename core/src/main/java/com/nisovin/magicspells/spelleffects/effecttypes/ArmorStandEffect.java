@@ -11,7 +11,6 @@ import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.util.EntityData;
 import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.spelleffects.SpellEffect;
-import com.nisovin.magicspells.util.magicitems.MagicItem;
 import com.nisovin.magicspells.util.magicitems.MagicItems;
 import com.nisovin.magicspells.util.config.ConfigDataUtil;
 
@@ -37,14 +36,9 @@ public class ArmorStandEffect extends SpellEffect {
 
 		gravity = ConfigDataUtil.getBoolean(section, "gravity", false);
 
-		MagicItem item = MagicItems.getMagicItemFromString(section.getString("head"));
-		if (item != null) headItem = item.getItemStack();
-
-		item = MagicItems.getMagicItemFromString(section.getString("mainhand"));
-		if (item != null) mainhandItem = item.getItemStack();
-
-		item = MagicItems.getMagicItemFromString(section.getString("offhand"));
-		if (item != null) offhandItem = item.getItemStack();
+		headItem = MagicItems.getItemFromString(section.getString("head"));
+		mainhandItem = MagicItems.getItemFromString(section.getString("mainhand"));
+		offhandItem = MagicItems.getItemFromString(section.getString("offhand"));
 	}
 
 	@Override

@@ -25,7 +25,6 @@ import com.nisovin.magicspells.spells.InstantSpell;
 import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.events.SpellTargetEvent;
 import com.nisovin.magicspells.zones.NoMagicZoneManager;
-import com.nisovin.magicspells.util.magicitems.MagicItem;
 import com.nisovin.magicspells.util.magicitems.MagicItems;
 import com.nisovin.magicspells.spells.TargetedEntitySpell;
 import com.nisovin.magicspells.spelleffects.EffectPosition;
@@ -38,7 +37,7 @@ public class BlockBeamSpell extends InstantSpell implements TargetedLocationSpel
 
 	private final Set<List<LivingEntity>> entities;
 
-	private ItemStack headItem;
+	private final ItemStack headItem;
 
 	private final ConfigData<Vector> relativeOffset;
 	private final ConfigData<Vector> targetRelativeOffset;
@@ -84,10 +83,8 @@ public class BlockBeamSpell extends InstantSpell implements TargetedLocationSpel
 
 		entities = new HashSet<>();
 
-		String item = getConfigString("block-type", "stone");
-		MagicItem magicItem = MagicItems.getMagicItemFromString(item);
-		if (magicItem != null) headItem = magicItem.getItemStack();
-		else MagicSpells.error("BlockBeamSpell '" + internalName + "' has an invalid 'block-type' defined!");
+		headItem = MagicItems.getItemFromString(getConfigString("block-type", "stone"));
+		if (headItem == null) MagicSpells.error("BlockBeamSpell '" + internalName + "' has an invalid 'block-type' defined!");
 
 		relativeOffset = getConfigDataVector("relative-offset", new Vector(0, 0.5, 0));
 		targetRelativeOffset = getConfigDataVector("target-relative-offset", new Vector(0, 0.5, 0));

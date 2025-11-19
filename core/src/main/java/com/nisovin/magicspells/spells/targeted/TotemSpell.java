@@ -24,7 +24,6 @@ import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.spells.TargetedSpell;
 import com.nisovin.magicspells.events.SpellTargetEvent;
 import com.nisovin.magicspells.util.config.ConfigData;
-import com.nisovin.magicspells.util.magicitems.MagicItem;
 import com.nisovin.magicspells.util.magicitems.MagicItems;
 import com.nisovin.magicspells.spelleffects.EffectPosition;
 import com.nisovin.magicspells.spells.TargetedLocationSpell;
@@ -56,12 +55,12 @@ public class TotemSpell extends TargetedSpell implements TargetedLocationSpell {
 
 	private final String strAtCap;
 
-	private ItemStack helmet;
-	private ItemStack chestplate;
-	private ItemStack leggings;
-	private ItemStack boots;
-	private ItemStack mainHand;
-	private ItemStack offHand;
+	private final ItemStack mainHand;
+	private final ItemStack offHand;
+	private final ItemStack helmet;
+	private final ItemStack chestplate;
+	private final ItemStack leggings;
+	private final ItemStack boots;
 
 	private final List<String> spellNames;
 	private List<Subspell> spells;
@@ -76,41 +75,23 @@ public class TotemSpell extends TargetedSpell implements TargetedLocationSpell {
 		super(config, spellName);
 
 		// Equipment
-		MagicItem magicMainHandItem = MagicItems.getMagicItemFromString(getConfigString("main-hand", ""));
-		if (magicMainHandItem != null) {
-			mainHand = magicMainHandItem.getItemStack();
-			mainHand.setAmount(1);
-		}
+		mainHand = MagicItems.getItemFromString(getConfigString("main-hand", ""));
+		if (mainHand != null) mainHand.setAmount(1);
 
-		MagicItem magicOffHandItem = MagicItems.getMagicItemFromString(getConfigString("off-hand", ""));
-		if (magicOffHandItem != null) {
-			offHand = magicOffHandItem.getItemStack();
-			offHand.setAmount(1);
-		}
+		offHand = MagicItems.getItemFromString(getConfigString("off-hand", ""));
+		if (offHand != null) offHand.setAmount(1);
 
-		MagicItem magicHelmetItem = MagicItems.getMagicItemFromString(getConfigString("helmet", ""));
-		if (magicHelmetItem != null) {
-			helmet = magicHelmetItem.getItemStack();
-			helmet.setAmount(1);
-		}
+		helmet = MagicItems.getItemFromString(getConfigString("helmet", ""));
+		if (helmet != null) helmet.setAmount(1);
 
-		MagicItem magicChestplateItem = MagicItems.getMagicItemFromString(getConfigString("chestplate", ""));
-		if (magicChestplateItem != null) {
-			chestplate = magicChestplateItem.getItemStack();
-			chestplate.setAmount(1);
-		}
+		chestplate = MagicItems.getItemFromString(getConfigString("chestplate", ""));
+		if (chestplate != null) chestplate.setAmount(1);
 
-		MagicItem magicLeggingsItem = MagicItems.getMagicItemFromString(getConfigString("leggings", ""));
-		if (magicLeggingsItem != null) {
-			leggings = magicLeggingsItem.getItemStack();
-			leggings.setAmount(1);
-		}
+		leggings = MagicItems.getItemFromString(getConfigString("leggings", ""));
+		if (leggings != null) leggings.setAmount(1);
 
-		MagicItem magicBootsItem = MagicItems.getMagicItemFromString(getConfigString("boots", ""));
-		if (magicBootsItem != null) {
-			boots = magicBootsItem.getItemStack();
-			boots.setAmount(1);
-		}
+		boots = MagicItems.getItemFromString(getConfigString("boots", ""));
+		if (boots != null) boots.setAmount(1);
 
 		yOffset = getConfigDataInt("y-offset", 0);
 		interval = getConfigDataInt("interval", 30);

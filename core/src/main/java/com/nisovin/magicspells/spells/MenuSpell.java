@@ -30,7 +30,6 @@ import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.variables.Variable;
 import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.castmodifiers.ModifierSet;
-import com.nisovin.magicspells.util.magicitems.MagicItem;
 import com.nisovin.magicspells.util.magicitems.MagicItems;
 import com.nisovin.magicspells.spelleffects.EffectPosition;
 import com.nisovin.magicspells.events.MagicSpellsGenericPlayerEvent;
@@ -101,12 +100,12 @@ public class MenuSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 				}
 				// Otherwise process item list.
 				for (String itemName : itemList) {
-					MagicItem magicItem = MagicItems.getMagicItemFromString(itemName);
-					if (magicItem == null) {
+					ItemStack itemStack = MagicItems.getItemFromString(itemName);
+					if (itemStack == null) {
 						MagicSpells.error("MenuSpell '" + internalName + "' has an invalid item listed in '" + optionName + "': " + itemName);
 						continue;
 					}
-					items.add(magicItem.getItemStack().clone());
+					items.add(itemStack);
 				}
 				// Skip if list was invalid.
 				if (items.isEmpty()) {
@@ -241,11 +240,9 @@ public class MenuSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 	}
 
 	private ItemStack createItem(String path) {
-		MagicItem magicItem = isConfigSection(path) ?
-				MagicItems.getMagicItemFromSection(getConfigSection(path)) :
-				MagicItems.getMagicItemFromString(getConfigString(path, ""));
-		ItemStack item = magicItem == null ? null : magicItem.getItemStack();
-		return item == null ? null : item.clone();
+		return isConfigSection(path) ?
+			MagicItems.getItemFromSection(getConfigSection(path)) :
+			MagicItems.getItemFromString(getConfigString(path, ""));
 	}
 
 	private void open(Player opener, SpellData data, boolean targetOpensMenuInstead) {

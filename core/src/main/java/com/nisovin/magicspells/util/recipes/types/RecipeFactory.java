@@ -25,7 +25,6 @@ import net.kyori.adventure.text.format.TextDecoration;
 import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.ConfigReaderUtil;
-import com.nisovin.magicspells.util.magicitems.MagicItem;
 import com.nisovin.magicspells.util.magicitems.MagicItems;
 import com.nisovin.magicspells.util.recipes.wrapper.CustomRecipe;
 
@@ -51,12 +50,11 @@ public abstract class RecipeFactory<R extends CustomRecipe> {
 			return null;
 		}
 
-		MagicItem magicItem = getMagicItem(config.get("result"));
-		if (magicItem == null) {
+		ItemStack result = getMagicItem(config.get("result"));
+		if (result == null) {
 			MagicSpells.error("Invalid magic item defined for 'result' on custom recipe '%s'.".formatted(config.getName()));
 			return null;
 		}
-		ItemStack result = magicItem.getItemStack().clone();
 		result.setAmount(Math.max(1, config.getInt("quantity", 1)));
 
 		return createRecipe(config, key, result);
@@ -73,12 +71,12 @@ public abstract class RecipeFactory<R extends CustomRecipe> {
 				return tag == null ? null : new RecipeChoice.MaterialChoice(tag);
 			}
 
-			MagicItem magicItem = getMagicItem(object);
-			if (magicItem == null) {
+			ItemStack item = getMagicItem(object);
+			if (item == null) {
 				MagicSpells.error("Invalid magic item defined for '%s' on custom recipe '%s'.".formatted(path, config.getName()));
 				return null;
 			}
-			return new RecipeChoice.ExactChoice(getItalicVariants(magicItem.getItemStack()));
+			return new RecipeChoice.ExactChoice(getItalicVariants(item));
 		}
 
 		List<ItemStack> items = new ArrayList<>();
@@ -99,12 +97,12 @@ public abstract class RecipeFactory<R extends CustomRecipe> {
 				return null;
 			}
 
-			MagicItem magicItem = getMagicItem(object);
-			if (magicItem == null) {
+			ItemStack item = getMagicItem(object);
+			if (item == null) {
 				MagicSpells.error("Invalid magic item listed on custom recipe '%s' at index %d of '%s'.".formatted(config.getName(), i, path));
 				return null;
 			}
-			items.addAll(getItalicVariants(magicItem.getItemStack()));
+			items.addAll(getItalicVariants(item));
 		}
 
 		return materials.isEmpty() ?
@@ -112,26 +110,25 @@ public abstract class RecipeFactory<R extends CustomRecipe> {
 			new RecipeChoice.MaterialChoice(materials);
 	}
 
-	/*
+	/**
 	 * If the item has italics, allow items with unset italics to work.
 	 */
-	private List<ItemStack> getItalicVariants(ItemStack original) {
-		ItemStack clone = original.clone();
-		if (!original.hasItemMeta()) return List.of(clone);
+	private List<ItemStack> getItalicVariants(ItemStack item) {
+		if (!item.hasItemMeta()) return List.of(item);
 
-		Component displayName = original.getItemMeta().displayName();
+		Component displayName = item.getItemMeta().displayName();
 		if (displayName == null || !displayName.hasDecoration(TextDecoration.ITALIC))
-			return List.of(clone);
+			return List.of(item);
 
-		ItemStack item = original.clone();
-		item.editMeta(meta -> meta.displayName(displayName.decoration(TextDecoration.ITALIC, TextDecoration.State.NOT_SET)));
+		ItemStack clone = item.clone();
+		clone.editMeta(meta -> meta.displayName(displayName.decoration(TextDecoration.ITALIC, TextDecoration.State.NOT_SET)));
 		return List.of(clone, item);
 	}
 
-	private MagicItem getMagicItem(Object object) {
+	private ItemStack getMagicItem(Object object) {
 		return switch (object) {
-			case String string -> MagicItems.getMagicItemFromString(string);
-			case Map<?, ?> map -> MagicItems.getMagicItemFromSection(ConfigReaderUtil.mapToSection(map));
+			case String string -> MagicItems.getItemFromString(string);
+			case Map<?, ?> map -> MagicItems.getItemFromSection(ConfigReaderUtil.mapToSection(map));
 			case null, default -> null;
 		};
 	}
