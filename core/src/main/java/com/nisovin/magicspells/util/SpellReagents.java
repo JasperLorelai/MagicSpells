@@ -60,10 +60,13 @@ public class SpellReagents {
 		else items = new HashSet<>(newItems);
 	}
 
-	// TODO can this safely be varargs?
 	public void setItems(ReagentItem[] newItems) {
 		if (newItems == null || newItems.length == 0) items = null;
 		else items = new HashSet<>(Arrays.asList(newItems));
+	}
+
+	public void addItem(MagicItemData data, int amount) {
+		addItem(new ReagentItem(data, amount));
 	}
 
 	public void addItem(ReagentItem item) {

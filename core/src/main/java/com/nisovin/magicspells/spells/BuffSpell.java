@@ -329,7 +329,7 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 		// Charge cost.
 		if (hasNoCost) return;
 		if (uses % useCostInterval != 0) return;
-		if (hasReagents(entity, reagents)) removeReagents(entity, reagents);
+		if (SpellUtil.hasReagents(entity, reagents)) SpellUtil.removeReagents(entity, reagents);
 		else turnOff(entity);
 		if (spellOnCost != null) spellOnCost.subcast(new SpellData(entity));
 	}

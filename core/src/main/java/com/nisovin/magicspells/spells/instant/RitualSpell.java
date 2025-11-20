@@ -243,12 +243,12 @@ public class RitualSpell extends InstantSpell {
 			if (duration >= ritualDuration) {
 				// Channel is done
 				if (count >= reqParticipants && !caster.isDead() && caster.isOnline()) {
-					if (chargeReagentsImmediately || hasReagents(caster)) {
+					if (chargeReagentsImmediately || SpellUtil.hasReagents(caster, reagents)) {
 						stop(strRitualSuccess);
 						playSpellEffects(EffectPosition.DELAYED, caster, data);
 
 						CastResult result = spellToCast.cast(data);
-						if (!chargeReagentsImmediately && result.action().chargeReagents()) removeReagents(caster);
+						if (!chargeReagentsImmediately && result.action().chargeReagents()) SpellUtil.removeReagents(caster, reagents);
 						if (!setCooldownImmediately && result.action().setCooldown()) setCooldown(caster, data);
 						if (setCooldownForAll && result.action().setCooldown()) {
 							for (Player p : channelers.keySet()) {

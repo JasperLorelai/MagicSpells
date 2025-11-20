@@ -520,7 +520,7 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 					continue;
 				}
 
-				reagents.addItem(new SpellReagents.ReagentItem(itemData, amount));
+				reagents.addItem(itemData, amount);
 			} catch (Exception e) {
 				MagicSpells.error("Failed to process cost value for " + internalName + " spell: " + costVal);
 			}
@@ -1068,7 +1068,7 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 		if (MagicSpells.getNoMagicZoneManager() != null && MagicSpells.getNoMagicZoneManager().willFizzle(caster, this))
 			return SpellCastState.NO_MAGIC_ZONE;
 		if (onCooldown(caster)) return SpellCastState.ON_COOLDOWN;
-		if (!hasReagents(caster)) return SpellCastState.MISSING_REAGENTS;
+		if (!SpellUtil.hasReagents(caster, reagents)) return SpellCastState.MISSING_REAGENTS;
 		return SpellCastState.NORMAL;
 	}
 
@@ -1117,7 +1117,7 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 		}
 
 		if (castEvent.haveReagentsChanged()) {
-			boolean hasReagents = hasReagents(data.caster(), castEvent.getReagents());
+			boolean hasReagents = SpellUtil.hasReagents(data.caster(), castEvent.getReagents());
 			if (!hasReagents && state != SpellCastState.MISSING_REAGENTS) {
 				castEvent.setSpellCastState(SpellCastState.MISSING_REAGENTS);
 				debug(2, "    Spell cast state changed: " + state);
@@ -1173,7 +1173,7 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 			switch (castEvent.getSpellCastState()) {
 				case NORMAL -> {
 					if (action.setCooldown()) setCooldown(caster, castEvent.getCooldown(), castEvent.getSpellData(), true);
-					if (action.chargeReagents()) removeReagents(caster, castEvent.getReagents());
+					if (action.chargeReagents()) SpellUtil.removeReagents(caster, castEvent.getReagents());
 					if (action.sendMessages()) sendMessages(data);
 
 					int experience = this.experience.get(data);
@@ -1417,12 +1417,12 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 	 *
 	 * @param livingEntity the living entity to check
 	 * @return true if the player has the reagents, false otherwise
+	 * @deprecated Use {@link SpellUtil#hasReagents(LivingEntity, SpellReagents)}
 	 */
+	@Deprecated(forRemoval = true)
 	protected boolean hasReagents(LivingEntity livingEntity) {
-		return hasReagents(livingEntity, reagents);
+		return SpellUtil.hasReagents(livingEntity, reagents);
 	}
-
-	// FIXME this doesn't seem strictly tied to Spell logic, could probably be moved
 
 	/**
 	 * Checks if a player has the reagents required to cast this spell
@@ -1430,10 +1430,12 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 	 * @param livingEntity the living entity to check
 	 * @param reagents     the reagents to check for
 	 * @return true if the player has the reagents, false otherwise
+	 * @deprecated Use {@link SpellUtil#hasReagents(LivingEntity, SpellReagents)}
 	 */
+	@Deprecated(forRemoval = true)
 	protected boolean hasReagents(LivingEntity livingEntity, SpellReagents reagents) {
 		if (reagents == null) return true;
-		return SpellUtil.hasReagents(livingEntity, reagents.getItemsAsArray(), reagents.getHealth(), reagents.getMana(), reagents.getHunger(), reagents.getExperience(), reagents.getLevels(), reagents.getDurability(), reagents.getMoney(), reagents.getVariables());
+		return SpellUtil.hasReagents(livingEntity, reagents);
 	}
 
 	/**
@@ -1441,25 +1443,19 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 	 * This does not check if the player has the reagents, use hasReagents() for that.
 	 *
 	 * @param livingEntity the living entity to remove reagents from
+	 * @deprecated Use {@link SpellUtil#removeReagents(LivingEntity, SpellReagents)}
 	 */
+	@Deprecated(forRemoval = true)
 	protected void removeReagents(LivingEntity livingEntity) {
-		removeReagents(livingEntity, reagents);
+		SpellUtil.removeReagents(livingEntity, reagents);
 	}
 
-	// TODO can this safely be made varargs?
 	/**
-	 * Removes the specified reagents from the player's inventory.
-	 * This does not check if the player has the reagents, use hasReagents() for that.
-	 *
-	 * @param livingEntity the living entity to remove the reagents from
-	 * @param reagents     the inventory item reagents to remove
+	 * @deprecated Use {@link SpellUtil#removeReagents(LivingEntity, SpellReagents)}
 	 */
-	protected void removeReagents(LivingEntity livingEntity, SpellReagents.ReagentItem[] reagents) {
-		SpellUtil.removeReagents(livingEntity, reagents, 0, 0, 0, 0, 0, 0, 0, null);
-	}
-
+	@Deprecated(forRemoval = true)
 	protected void removeReagents(LivingEntity livingEntity, SpellReagents reagents) {
-		SpellUtil.removeReagents(livingEntity, reagents.getItemsAsArray(), reagents.getHealth(), reagents.getMana(), reagents.getHunger(), reagents.getExperience(), reagents.getLevels(), reagents.getDurability(), reagents.getMoney(), reagents.getVariables());
+		SpellUtil.removeReagents(livingEntity, reagents);
 	}
 
 	public Map<EffectPosition, List<SpellEffect>> getEffects() {
