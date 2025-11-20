@@ -124,12 +124,12 @@ public class ImbueSpell extends CommandSpell {
 
 		if (chargeReagentsForSpellPerUse.get(data) && !Perm.NO_REAGENTS.has(caster)) {
 			SpellReagents reagents = spell.getReagents().multiply(uses);
-			if (!SpellUtil.hasReagents(caster, reagents)) {
+			if (!reagents.hasReagents(caster)) {
 				sendMessage(strMissingReagents, caster, data);
 				return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 			}
 
-			SpellUtil.removeReagents(caster, reagents);
+			reagents.removeReagents(caster);
 		}
 
 		int finalUses = uses;

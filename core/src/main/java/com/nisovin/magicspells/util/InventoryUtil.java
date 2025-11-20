@@ -5,7 +5,10 @@ import java.util.HashMap;
 
 import org.bukkit.Bukkit;
 import org.bukkit.inventory.*;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.inventory.InventoryType;
+
+import com.nisovin.magicspells.util.magicitems.MagicItemData;
 
 public class InventoryUtil {
 
@@ -81,27 +84,58 @@ public class InventoryUtil {
 		return ret;
 	}
 
-	public static boolean inventoryContains(EntityEquipment equipment, SpellReagents.ReagentItem item) {
-		if (equipment == null) return false;
+	private static boolean itemsContains(ItemStack[] items, SpellReagents.ReagentItem item) {
 		int count = 0;
-		for (ItemStack itemInside : getEquipmentItems(equipment)) {
-			if (itemInside.isEmpty()) continue;
-			if (item.getMagicItemData().matches(itemInside)) count += itemInside.getAmount();
+		for (ItemStack inside : items) {
+			if (inside.isEmpty()) continue;
+			if (item.getMagicItemData().matches(inside)) count += inside.getAmount();
 			if (count >= item.getAmount()) return true;
 		}
 		return false;
 	}
 
-	public static boolean inventoryContains(Inventory inventory, SpellReagents.ReagentItem item) {
-		if (inventory == null) return false;
-		int count = 0;
-		ItemStack[] items = inventory.getContents();
-		for (ItemStack itemStack : items) {
-			if (itemStack == null) continue;
-			if (item.getMagicItemData().matches(itemStack)) count += itemStack.getAmount();
-			if (count >= item.getAmount()) return true;
+	public static boolean inventoryContains(LivingEntity entity, SpellReagents.ReagentItem item) {
+		if (entity instanceof InventoryHolder holder)
+			return itemsContains(holder.getInventory().getContents(), item);
+
+		EntityEquipment equipment = entity.getEquipment();
+		return equipment != null && itemsContains(getEquipmentItems(equipment), item);
+	}
+
+	private static ItemStack[] removeFromItems(ItemStack[] items, MagicItemData data, int amount) {
+		for (int i = 0; i < items.length; i++) {
+			if (items[i] == null) continue;
+			if (!data.matches(items[i])) continue;
+
+			int invAmt = items[i].getAmount();
+			if (invAmt >= amount) {
+				items[i].setAmount(invAmt - amount);
+				return items;
+			}
+
+			amount -= invAmt;
+			items[i] = null;
 		}
-		return false;
+
+		return amount <= 0 ? items : null;
+	}
+
+	public static void removeFromInventory(LivingEntity entity, SpellReagents.ReagentItem item) {
+		if (entity instanceof InventoryHolder holder) {
+			Inventory inventory = holder.getInventory();
+			ItemStack[] newContent = removeFromItems(inventory.getContents(), item.getMagicItemData(), item.getAmount());
+			if (newContent != null) inventory.setContents(newContent);
+			return;
+		}
+
+		EntityEquipment equipment = entity.getEquipment();
+		if (equipment == null) return;
+		ItemStack[] newEquipment = removeFromItems(getEquipmentItems(equipment), item.getMagicItemData(), item.getAmount());
+		if (newEquipment == null) return;
+		EquipmentSlot[] slots = EquipmentSlot.values();
+		for (int i = 0; i < slots.length; i++) {
+			equipment.setItem(slots[i], newEquipment[i]);
+		}
 	}
 
 	public static ItemStack[] getEquipmentItems(EntityEquipment equipment) {

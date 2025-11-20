@@ -153,11 +153,11 @@ public class ScrollSpell extends CommandSpell {
 
 		if (chargeReagentsForSpellPerCharge && uses > 0) {
 			SpellReagents reagents = spell.getReagents().multiply(uses);
-			if (!SpellUtil.hasReagents(caster, reagents)) {
+			if (!reagents.hasReagents(caster)) {
 				sendMessage(strMissingReagents, caster, data);
 				return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 			}
-			SpellUtil.removeReagents(caster, reagents);
+			reagents.removeReagents(caster);
 		}
 
 		inHand = createScroll(spell, uses, inHand);

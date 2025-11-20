@@ -1068,7 +1068,7 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 		if (MagicSpells.getNoMagicZoneManager() != null && MagicSpells.getNoMagicZoneManager().willFizzle(caster, this))
 			return SpellCastState.NO_MAGIC_ZONE;
 		if (onCooldown(caster)) return SpellCastState.ON_COOLDOWN;
-		if (!SpellUtil.hasReagents(caster, reagents)) return SpellCastState.MISSING_REAGENTS;
+		if (!reagents.hasReagents(caster)) return SpellCastState.MISSING_REAGENTS;
 		return SpellCastState.NORMAL;
 	}
 
@@ -1117,7 +1117,7 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 		}
 
 		if (castEvent.haveReagentsChanged()) {
-			boolean hasReagents = SpellUtil.hasReagents(data.caster(), castEvent.getReagents());
+			boolean hasReagents = castEvent.getReagents().hasReagents(data.caster());
 			if (!hasReagents && state != SpellCastState.MISSING_REAGENTS) {
 				castEvent.setSpellCastState(SpellCastState.MISSING_REAGENTS);
 				debug(2, "    Spell cast state changed: " + state);
@@ -1173,7 +1173,7 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 			switch (castEvent.getSpellCastState()) {
 				case NORMAL -> {
 					if (action.setCooldown()) setCooldown(caster, castEvent.getCooldown(), castEvent.getSpellData(), true);
-					if (action.chargeReagents()) SpellUtil.removeReagents(caster, castEvent.getReagents());
+					if (action.chargeReagents()) castEvent.getReagents().removeReagents(caster);
 					if (action.sendMessages()) sendMessages(data);
 
 					int experience = this.experience.get(data);
@@ -1413,49 +1413,48 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 	}
 
 	/**
-	 * Checks if a player has the reagents required to cast this spell
+	 * Checks if an entity has the reagents required to cast this spell
 	 *
 	 * @param livingEntity the living entity to check
-	 * @return true if the player has the reagents, false otherwise
-	 * @deprecated Use {@link SpellUtil#hasReagents(LivingEntity, SpellReagents)}
+	 * @return true if the entity has the reagents, false otherwise
+	 * @deprecated Use {@link SpellReagents#hasReagents}
 	 */
 	@Deprecated(forRemoval = true)
 	protected boolean hasReagents(LivingEntity livingEntity) {
-		return SpellUtil.hasReagents(livingEntity, reagents);
+		return reagents.hasReagents(livingEntity);
 	}
 
 	/**
-	 * Checks if a player has the reagents required to cast this spell
+	 * Checks if an entity has the reagents required to cast this spell
 	 *
 	 * @param livingEntity the living entity to check
 	 * @param reagents     the reagents to check for
-	 * @return true if the player has the reagents, false otherwise
-	 * @deprecated Use {@link SpellUtil#hasReagents(LivingEntity, SpellReagents)}
+	 * @return true if the entity has the reagents
+	 * @deprecated Use {@link SpellReagents#hasReagents}
 	 */
 	@Deprecated(forRemoval = true)
 	protected boolean hasReagents(LivingEntity livingEntity, SpellReagents reagents) {
-		if (reagents == null) return true;
-		return SpellUtil.hasReagents(livingEntity, reagents);
+		return reagents.hasReagents(livingEntity);
 	}
 
 	/**
-	 * Removes the reagent cost of this spell from the player's inventory.
-	 * This does not check if the player has the reagents, use hasReagents() for that.
+	 * Removes the reagent cost of this spell from the entity's inventory.
+	 * This does not check if the entity has the reagents, use {@link SpellReagents#hasReagents} for that.
 	 *
 	 * @param livingEntity the living entity to remove reagents from
-	 * @deprecated Use {@link SpellUtil#removeReagents(LivingEntity, SpellReagents)}
+	 * @deprecated Use {@link SpellReagents#removeReagents}
 	 */
 	@Deprecated(forRemoval = true)
 	protected void removeReagents(LivingEntity livingEntity) {
-		SpellUtil.removeReagents(livingEntity, reagents);
+		reagents.removeReagents(livingEntity);
 	}
 
 	/**
-	 * @deprecated Use {@link SpellUtil#removeReagents(LivingEntity, SpellReagents)}
+	 * @deprecated Use {@link SpellReagents#removeReagents(LivingEntity)}
 	 */
 	@Deprecated(forRemoval = true)
 	protected void removeReagents(LivingEntity livingEntity, SpellReagents reagents) {
-		SpellUtil.removeReagents(livingEntity, reagents);
+		reagents.removeReagents(livingEntity);
 	}
 
 	public Map<EffectPosition, List<SpellEffect>> getEffects() {

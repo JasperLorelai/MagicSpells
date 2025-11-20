@@ -378,14 +378,14 @@ public class PortalSpell extends InstantSpell {
 			if (portal.portalCost == null) return true;
 
 			if (chargeCostToTeleporter) {
-				if (SpellUtil.hasReagents(target, portal.portalCost())) {
+				if (portal.portalCost().hasReagents(target)) {
 					payer = target;
 				} else {
 					sendMessage(strTeleportNoCost, target, data);
 					return false;
 				}
 			} else {
-				if (SpellUtil.hasReagents(data.caster(), portal.portalCost())) {
+				if (portal.portalCost().hasReagents(data.caster())) {
 					payer = data.caster();
 				} else {
 					sendMessage(strTeleportNoCost, target, data);
@@ -394,7 +394,7 @@ public class PortalSpell extends InstantSpell {
 			}
 
 			if (payer == null) return false;
-			SpellUtil.removeReagents(payer, portal.portalCost());
+			portal.portalCost().removeReagents(payer);
 			return true;
 		}
 

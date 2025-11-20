@@ -9,7 +9,19 @@ import java.util.Collection;
 
 import org.jetbrains.annotations.NotNull;
 
+import org.bukkit.entity.Player;
+import org.bukkit.entity.LivingEntity;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.EntityEquipment;
+import org.bukkit.inventory.meta.Damageable;
+
+import com.nisovin.magicspells.Perm;
+import com.nisovin.magicspells.MagicSpells;
+import com.nisovin.magicspells.handlers.MoneyHandler;
+import com.nisovin.magicspells.mana.ManaChangeReason;
 import com.nisovin.magicspells.util.magicitems.MagicItemData;
+import com.nisovin.magicspells.util.managers.VariableManager;
 
 public class SpellReagents {
 
@@ -194,6 +206,120 @@ public class SpellReagents {
 			}
 		}
 		return other;
+	}
+
+	/**
+	 * Checks if an entity has the specified reagents.
+	 * @param livingEntity the living entity to check
+	 * @return true if the entity has all the reagents
+	 */
+	public boolean hasReagents(LivingEntity livingEntity) {
+		if (Perm.NO_REAGENTS.has(livingEntity)) return true;
+
+		if (livingEntity instanceof Player player) {
+			if (mana > 0 && (MagicSpells.getManaHandler() == null || !MagicSpells.getManaHandler().hasMana(player, mana))) return false;
+
+			if (hunger > 0 && player.getFoodLevel() < hunger) return false;
+
+			if (experience > 0 && experience > player.calculateTotalExperiencePoints()) return false;
+
+			if (levels > 0 && player.getLevel() < levels) return false;
+
+			if (money > 0) {
+				MoneyHandler handler = MagicSpells.getMoneyHandler();
+				if (handler == null || !handler.hasMoney(player, money)) {
+					return false;
+				}
+			}
+
+			if (variables != null) {
+				VariableManager manager = MagicSpells.getVariableManager();
+				if (manager == null) return false;
+				for (Map.Entry<String, Double> var : variables.entrySet()) {
+					double val = var.getValue();
+					if (val > 0 && manager.getValue(var.getKey(), player) < val) return false;
+				}
+			}
+		}
+
+		if (health > 0 && livingEntity.getHealth() <= health) return false;
+
+		if (durability > 0) {
+			EntityEquipment equipment = livingEntity.getEquipment();
+			if (equipment == null) return false;
+			ItemStack inHand = equipment.getItemInMainHand();
+			if (!(inHand.getItemMeta() instanceof Damageable damageable)) return false;
+			if (damageable.getDamage() >= inHand.getType().getMaxDurability()) return false;
+		}
+
+		if (items != null) {
+			for (ReagentItem item : items) {
+				if (item == null) continue;
+				if (InventoryUtil.inventoryContains(livingEntity, item)) continue;
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	/**
+	 * Removes the specified reagents from the entity's inventory.
+	 * This does not check if the entity has the reagents, use {@link #hasReagents} for that.
+	 */
+	public void removeReagents(LivingEntity livingEntity) {
+		if (Perm.NO_REAGENTS.has(livingEntity)) return;
+
+		if (items != null) {
+			for (ReagentItem item : items) {
+				if (item == null) continue;
+				InventoryUtil.removeFromInventory(livingEntity, item);
+			}
+		}
+
+		if (livingEntity instanceof Player player) {
+			if (mana != 0) MagicSpells.getManaHandler().addMana(player, -mana, ManaChangeReason.SPELL_COST);
+
+			if (hunger != 0) player.setFoodLevel(Math.clamp(player.getFoodLevel() - hunger, 0, 20));
+
+			if (experience != 0) Util.addExperience(player, -experience);
+
+			if (money != 0) {
+				MoneyHandler handler = MagicSpells.getMoneyHandler();
+				if (handler != null) {
+					if (money > 0) handler.removeMoney(player, money);
+					else handler.addMoney(player, -money);
+				}
+			}
+
+			if (levels != 0) player.setLevel(Math.max(player.getLevel() - levels, 0));
+
+			if (variables != null) {
+				VariableManager manager = MagicSpells.getVariableManager();
+				if (manager != null) {
+					for (Map.Entry<String, Double> var : variables.entrySet()) {
+						manager.set(var.getKey(), player, manager.getValue(var.getKey(), player) - var.getValue());
+					}
+				}
+			}
+		}
+
+		if (health != 0) livingEntity.setHealth(Math.clamp(livingEntity.getHealth() - health, 0, Util.getMaxHealth(livingEntity)));
+
+		if (durability != 0) {
+			EntityEquipment eq = livingEntity.getEquipment();
+
+			if (eq != null) {
+				ItemStack item = eq.getItemInMainHand();
+				ItemMeta meta = item.getItemMeta();
+
+				int maxDurability = item.getType().getMaxDurability();
+				if (maxDurability > 0 && meta instanceof Damageable damageable) {
+					damageable.setDamage(Math.clamp(damageable.getDamage() + durability, 0, maxDurability));
+					item.setItemMeta(meta);
+				}
+			}
+		}
 	}
 
 	@Override
