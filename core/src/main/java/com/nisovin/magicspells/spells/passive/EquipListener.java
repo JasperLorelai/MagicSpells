@@ -62,10 +62,7 @@ public class EquipListener extends PassiveListener {
 				ItemStack newItem = change.newItem();
 				if (newItem.isEmpty()) return;
 
-				MagicItemData newData = MagicItems.getMagicItemDataFromItemStack(newItem);
-				MagicItemData oldData = MagicItems.getMagicItemDataFromItemStack(change.oldItem());
-
-				if (contains(oldData, newData)) {
+				if (contains(change.oldItem(), newItem)) {
 					check = true;
 					break;
 				}
@@ -77,9 +74,9 @@ public class EquipListener extends PassiveListener {
 		passiveSpell.activate(caster);
 	}
 
-	private boolean contains(MagicItemData oldData, MagicItemData newData) {
+	private boolean contains(ItemStack oldItem, ItemStack newItem) {
 		for (MagicItemData data : items)
-			if ((oldData.isEmpty() || !data.matches(oldData)) && data.matches(newData))
+			if ((oldItem.isEmpty() || !data.matches(oldItem)) && data.matches(newItem))
 				return true;
 
 		return false;

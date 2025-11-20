@@ -87,8 +87,7 @@ public class UnconjureSpell extends InstantSpell {
 			if (unconjuredItem.amountSpecified) {
 				for (int i = 0; i < oldItems.length; i++) {
 					if (oldItems[i] == null) continue;
-					MagicItemData oldItemData = MagicItems.getMagicItemDataFromItemStack(oldItems[i]);
-					if (!unconjuredItemData.matches(oldItemData)) continue;
+					if (!unconjuredItemData.matches(oldItems[i])) continue;
 					if (unconjuredItem.amount != oldItems[i].getAmount()) continue;
 					oldItems[i] = null;
 					// True is only returned if the search is for an item with specific
@@ -102,8 +101,7 @@ public class UnconjureSpell extends InstantSpell {
 			else {
 				for (int i = 0; i < oldItems.length; i++) {
 					if (oldItems[i] == null) continue;
-					MagicItemData oldItemData = MagicItems.getMagicItemDataFromItemStack(oldItems[i]);
-					if (unconjuredItemData.matches(oldItemData)) oldItems[i] = null;
+					if (unconjuredItemData.matches(oldItems[i])) oldItems[i] = null;
 				}
 			}
 		}

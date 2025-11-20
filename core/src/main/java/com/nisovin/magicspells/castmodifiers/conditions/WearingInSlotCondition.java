@@ -123,15 +123,7 @@ public class WearingInSlotCondition extends Condition {
 	}
 
 	private boolean contains(ItemStack item) {
-		if (item.isEmpty()) return emptyCheck;
-		MagicItemData itemData = MagicItems.getMagicItemDataFromItemStack(item);
-
-		for (MagicItemData data : items) {
-			if (data.matches(itemData))
-				return true;
-		}
-
-		return false;
+		return item.isEmpty() ? emptyCheck : MagicItemData.matchesAny(item, items);
 	}
 
 }

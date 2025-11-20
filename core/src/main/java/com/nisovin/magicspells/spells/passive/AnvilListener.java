@@ -101,15 +101,7 @@ public class AnvilListener extends PassiveListener {
 	}
 
 	private boolean contains(Set<MagicItemData> items, ItemStack item) {
-		if (item == null) item = ItemStack.empty();
-
-		MagicItemData itemData = MagicItems.getMagicItemDataFromItemStack(item);
-
-		for (MagicItemData data : items)
-			if (data.matches(itemData))
-				return true;
-
-		return false;
+		return MagicItemData.matchesAny(item == null ? ItemStack.empty() : item, items);
 	}
 
 }

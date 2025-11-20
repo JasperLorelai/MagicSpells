@@ -4,7 +4,6 @@ import org.jetbrains.annotations.NotNull;
 
 import org.bukkit.Location;
 import org.bukkit.entity.LivingEntity;
-import org.bukkit.inventory.ItemStack;
 
 import com.nisovin.magicspells.util.Name;
 import com.nisovin.magicspells.castmodifiers.Condition;
@@ -40,12 +39,7 @@ public class UsingItemCondition extends Condition {
 
 	private boolean checkUsing(LivingEntity target) {
 		if (!target.hasActiveItem()) return false;
-		if (itemData == null) return true;
-
-		ItemStack item = target.getActiveItem();
-		MagicItemData data = MagicItems.getMagicItemDataFromItemStack(item);
-
-		return itemData.matches(data);
+		return itemData.matches(target.getActiveItem());
 	}
 
 }

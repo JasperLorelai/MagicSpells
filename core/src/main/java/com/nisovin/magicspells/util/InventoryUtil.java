@@ -7,9 +7,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.inventory.*;
 import org.bukkit.event.inventory.InventoryType;
 
-import com.nisovin.magicspells.util.magicitems.MagicItems;
-import com.nisovin.magicspells.util.magicitems.MagicItemData;
-
 public class InventoryUtil {
 
 	private static final String SERIALIZATION_KEY_SIZE = "size";
@@ -89,9 +86,7 @@ public class InventoryUtil {
 		int count = 0;
 		for (ItemStack itemInside : getEquipmentItems(equipment)) {
 			if (itemInside.isEmpty()) continue;
-			MagicItemData magicItemData = MagicItems.getMagicItemDataFromItemStack(itemInside);
-
-			if (item.getMagicItemData().matches(magicItemData)) count += itemInside.getAmount();
+			if (item.getMagicItemData().matches(itemInside)) count += itemInside.getAmount();
 			if (count >= item.getAmount()) return true;
 		}
 		return false;
@@ -103,8 +98,7 @@ public class InventoryUtil {
 		ItemStack[] items = inventory.getContents();
 		for (ItemStack itemStack : items) {
 			if (itemStack == null) continue;
-			MagicItemData magicItemData = MagicItems.getMagicItemDataFromItemStack(itemStack);
-			if (item.getMagicItemData().matches(magicItemData)) count += itemStack.getAmount();
+			if (item.getMagicItemData().matches(itemStack)) count += itemStack.getAmount();
 			if (count >= item.getAmount()) return true;
 		}
 		return false;

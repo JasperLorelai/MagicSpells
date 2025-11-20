@@ -50,20 +50,11 @@ public class FoodLevelChangeListener extends PassiveListener {
 		if (!items.isEmpty()) {
 			ItemStack item = event.getItem();
 			if (item == null) return;
-
-			MagicItemData itemData = MagicItems.getMagicItemDataFromItemStack(item);
-			if (!contains(itemData)) return;
+			if (!MagicItemData.matchesAny(item, items)) return;
 		}
 
 		boolean casted = passiveSpell.activate(caster);
 		if (cancelDefaultAction(casted)) event.setCancelled(true);
-	}
-
-	private boolean contains(MagicItemData itemData) {
-		for (MagicItemData data : items) {
-			if (data.matches(itemData)) return true;
-		}
-		return false;
 	}
 
 }

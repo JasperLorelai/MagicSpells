@@ -61,8 +61,7 @@ public class ChestContainsCondition extends Condition {
 
 		for (ItemStack item : ((Chest) block.getState()).getInventory().getContents()) {
 			if (item == null) continue;
-			MagicItemData data = MagicItems.getMagicItemDataFromItemStack(item);
-			if (itemData.matches(data)) return true;
+			if (itemData.matches(item)) return true;
 		}
 
 		return false;

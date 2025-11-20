@@ -228,12 +228,12 @@ public class BowSpell extends Spell {
 		if (disallowedBowNames != null && disallowedBowNames.contains(name)) return;
 		if (bowName != null && !bowName.equals(name)) return;
 
-		if (bowItems != null && !check(bow, bowItems)) return;
-		if (disallowedBowItems != null && check(bow, disallowedBowItems)) return;
+		if (bowItems != null && !MagicItemData.matchesAny(bow, bowItems)) return;
+		if (disallowedBowItems != null && MagicItemData.matchesAny(bow, disallowedBowItems)) return;
 
 		ItemStack ammo = event.getConsumable();
-		if (ammoItems != null && (ammo == null || !check(ammo, ammoItems))) return;
-		if (disallowedAmmoItems != null && ammo != null && check(ammo, disallowedAmmoItems)) return;
+		if (ammoItems != null && (ammo == null || !MagicItemData.matchesAny(ammo, ammoItems))) return;
+		if (disallowedAmmoItems != null && ammo != null && MagicItemData.matchesAny(ammo, disallowedAmmoItems)) return;
 
 		SpellCastEvent castEvent = preCast(data);
 		if (castEvent.isCancelled()) {
@@ -281,15 +281,6 @@ public class BowSpell extends Spell {
 
 		playSpellEffects(data);
 		postCast(castEvent, new CastResult(PostCastAction.HANDLE_NORMALLY, data));
-	}
-
-	private boolean check(ItemStack item, List<MagicItemData> filters) {
-		MagicItemData itemData = MagicItems.getMagicItemDataFromItemStack(item);
-		for (MagicItemData data : filters)
-			if (data.matches(itemData))
-				return true;
-
-		return false;
 	}
 
 	private class ShootListener implements Listener {

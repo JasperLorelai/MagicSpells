@@ -1,22 +1,19 @@
 package com.nisovin.magicspells.util.magicitems;
 
-import java.util.Map;
-import java.util.Set;
-import java.util.List;
-import java.util.UUID;
-import java.util.EnumMap;
-import java.util.EnumSet;
-import java.util.Objects;
+import java.util.*;
 
-import com.google.common.collect.Multimap;
-import com.google.common.collect.Iterables;
+import org.jetbrains.annotations.NotNull;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import com.google.common.collect.Multimap;
+import com.google.common.collect.Iterables;
+
 import net.kyori.adventure.text.Component;
 
 import org.bukkit.*;
 import org.bukkit.potion.PotionType;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.block.banner.Pattern;
@@ -108,7 +105,21 @@ public class MagicItemData {
 		this.strictEnchants = strictEnchants;
 	}
 
-	public boolean matches(MagicItemData data) {
+	public static boolean matchesAny(@NotNull ItemStack item, @NotNull Collection<MagicItemData> items) {
+		MagicItemData itemData = MagicItems.getMagicItemDataFromItemStack(item);
+
+		for (MagicItemData data : items)
+			if (data.matches(itemData))
+				return true;
+
+		return false;
+	}
+
+	public boolean matches(@NotNull ItemStack item) {
+		return matches(MagicItems.getMagicItemDataFromItemStack(item));
+	}
+
+	public boolean matches(@NotNull MagicItemData data) {
 		if (this == data) return true;
 
 		Set<MagicItemAttribute> keysSelf = itemAttributes.keySet();

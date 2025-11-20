@@ -46,9 +46,7 @@ import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.handlers.DebugHandler;
 import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.util.config.ConfigDataUtil;
-import com.nisovin.magicspells.util.magicitems.MagicItems;
 import com.nisovin.magicspells.handlers.PotionEffectHandler;
-import com.nisovin.magicspells.util.magicitems.MagicItemData;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.Style;
@@ -346,8 +344,7 @@ public class Util {
 		for (int i = 0; i < items.length; i++) {
 			if (items[i] == null) continue;
 
-			MagicItemData magicData = MagicItems.getMagicItemDataFromItemStack(items[i]);
-			if (!item.getMagicItemData().matches(magicData)) continue;
+			if (!item.getMagicItemData().matches(items[i])) continue;
 
 			if (items[i].getAmount() > amt) {
 				items[i].setAmount(items[i].getAmount() - amt);
@@ -385,8 +382,7 @@ public class Util {
 		for (int i = 0; i < items.length; i++) {
 			if (items[i] == null) continue;
 
-			MagicItemData magicData = MagicItems.getMagicItemDataFromItemStack(items[i]);
-			if (!item.getMagicItemData().matches(magicData)) continue;
+			if (!item.getMagicItemData().matches(items[i])) continue;
 
 			if (items[i].getAmount() > amt) {
 				items[i].setAmount(items[i].getAmount() - amt);

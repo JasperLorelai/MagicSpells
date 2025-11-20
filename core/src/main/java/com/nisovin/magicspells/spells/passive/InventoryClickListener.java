@@ -107,9 +107,7 @@ public class InventoryClickListener extends PassiveListener {
 			if (click == ClickType.NUMBER_KEY && itemHotbar != null) {
 				ItemStack itemStack = event.getView().getBottomInventory().getItem(event.getHotbarButton());
 				if (itemStack == null) return;
-
-				MagicItemData item = MagicItems.getMagicItemDataFromItemStack(itemStack);
-				if (!itemHotbar.matches(item)) return;
+				if (!itemHotbar.matches(itemStack)) return;
 			}
 		}
 
@@ -120,14 +118,11 @@ public class InventoryClickListener extends PassiveListener {
 		if (slotType != null && !event.getSlotType().equals(slotType)) return;
 
 		if (itemCurrent != null) {
-			MagicItemData item = MagicItems.getMagicItemDataFromItemStack(event.getCurrentItem());
+			ItemStack item = event.getCurrentItem();
 			if (item == null || !itemCurrent.matches(item)) return;
 		}
 
-		if (itemCursor != null) {
-			MagicItemData item = MagicItems.getMagicItemDataFromItemStack(event.getCursor());
-			if (!itemCursor.matches(item)) return;
-		}
+		if (itemCursor != null && !itemCursor.matches(event.getCursor())) return;
 
 		boolean casted = passiveSpell.activate(data);
 		if (cancelDefaultAction(casted)) event.setCancelled(true);

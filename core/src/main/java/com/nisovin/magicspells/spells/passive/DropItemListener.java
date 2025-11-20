@@ -7,7 +7,6 @@ import org.jetbrains.annotations.NotNull;
 
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
-import org.bukkit.inventory.ItemStack;
 import org.bukkit.event.player.PlayerDropItemEvent;
 
 import com.nisovin.magicspells.util.Name;
@@ -48,21 +47,10 @@ public class DropItemListener extends PassiveListener {
 		Player caster = event.getPlayer();
 		if (!canTrigger(caster)) return;
 
-		if (!items.isEmpty()) {
-			ItemStack item = event.getItemDrop().getItemStack();
-			MagicItemData itemData = MagicItems.getMagicItemDataFromItemStack(item);
-			if (!contains(itemData)) return;
-		}
+		if (!items.isEmpty() && !MagicItemData.matchesAny(event.getItemDrop().getItemStack(), items)) return;
 
 		boolean casted = passiveSpell.activate(caster);
 		if (cancelDefaultAction(casted)) event.setCancelled(true);
-	}
-
-	private boolean contains(MagicItemData itemData) {
-		for (MagicItemData data : items) {
-			if (data.matches(itemData)) return true;
-		}
-		return false;
 	}
 
 }

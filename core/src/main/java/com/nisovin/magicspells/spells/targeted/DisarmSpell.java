@@ -90,10 +90,8 @@ public class DisarmSpell extends TargetedSpell implements TargetedEntitySpell {
 		ItemStack inHand = getItemInHand(target);
 		if (inHand == null || inHand.isEmpty()) return noTarget(strInvalidItem, data);
 
-		if (disarmable != null) {
-			MagicItemData itemData = MagicItems.getMagicItemDataFromItemStack(inHand);
-			if (!contains(itemData)) return noTarget(strInvalidItem, data);
-		}
+		if (disarmable != null && !MagicItemData.matchesAny(inHand, disarmable))
+			return noTarget(strInvalidItem, data);
 
 		int disarmDuration = this.disarmDuration.get(data);
 		if (!dontDrop.get(data)) {
@@ -126,13 +124,6 @@ public class DisarmSpell extends TargetedSpell implements TargetedEntitySpell {
 		playSpellEffects(data);
 
 		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
-	}
-
-	private boolean contains(MagicItemData itemData) {
-		for (MagicItemData data : disarmable) {
-			if (data.matches(itemData)) return true;
-		}
-		return false;
 	}
 
 	private ItemStack getItemInHand(LivingEntity entity) {

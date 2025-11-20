@@ -201,7 +201,7 @@ public class DamageListener extends PassiveListener {
 				case null, default -> null;
 			};
 
-			if (item == null || !matches(weaponItems, item)) return;
+			if (item == null || !MagicItemData.matchesAny(item, weaponItems)) return;
 		}
 
 		if (projectileItems != null) {
@@ -211,20 +211,11 @@ public class DamageListener extends PassiveListener {
 				case null, default -> null;
 			};
 
-			if (item == null || !matches(projectileItems, item)) return;
+			if (item == null || !MagicItemData.matchesAny(item, projectileItems)) return;
 		}
 
 		boolean casted = passiveSpell.activate(data);
 		if (cancelDefaultAction(casted)) event.setCancelled(true);
-	}
-
-	private boolean matches(List<MagicItemData> items, ItemStack item) {
-		MagicItemData itemData = MagicItems.getMagicItemDataFromItemStack(item);
-		for (MagicItemData data : items)
-			if (data.matches(itemData))
-				return true;
-
-		return false;
 	}
 
 	private enum Mode {

@@ -55,19 +55,11 @@ public class PlayerAnimationListener extends PassiveListener {
 				case OFF_ARM_SWING -> EquipmentSlot.OFF_HAND;
 			});
 
-			MagicItemData itemData = MagicItems.getMagicItemDataFromItemStack(item);
-			if (!contains(itemData)) return;
+			if (!MagicItemData.matchesAny(item, items)) return;
 		}
 
 		boolean casted = passiveSpell.activate(caster);
 		if (cancelDefaultAction(casted)) event.setCancelled(true);
-	}
-
-	private boolean contains(MagicItemData itemData) {
-		for (MagicItemData data : items) {
-			if (data.matches(itemData)) return true;
-		}
-		return false;
 	}
 
 }

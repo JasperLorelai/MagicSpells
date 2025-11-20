@@ -49,8 +49,7 @@ public class HasItemPreciseCondition extends Condition {
 	private boolean checkInventory(Inventory inventory) {
 		for (ItemStack item : inventory.getContents()) {
 			if (item == null) continue;
-			MagicItemData data = MagicItems.getMagicItemDataFromItemStack(item);
-			if (itemData.matches(data)) return true;
+			if (itemData.matches(item)) return true;
 		}
 
 		return false;
@@ -61,8 +60,7 @@ public class HasItemPreciseCondition extends Condition {
 
 		for (ItemStack item : InventoryUtil.getEquipmentItems(equipment)) {
 			if (item.isEmpty()) continue;
-			MagicItemData data = MagicItems.getMagicItemDataFromItemStack(item);
-			if (itemData.matches(data)) return true;
+			if (itemData.matches(item)) return true;
 		}
 
 		return false;

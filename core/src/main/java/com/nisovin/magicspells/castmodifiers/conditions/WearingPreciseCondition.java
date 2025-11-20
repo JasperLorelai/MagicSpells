@@ -42,17 +42,14 @@ public class WearingPreciseCondition extends Condition {
 		EntityEquipment eq = target.getEquipment();
 		if (eq == null) return false;
 
-		if (checkItem(eq.getHelmet())) return true;
-		if (checkItem(eq.getChestplate())) return true;
-		if (checkItem(eq.getLeggings())) return true;
-		return checkItem(eq.getBoots());
+		return checkItem(eq.getHelmet())
+			|| checkItem(eq.getChestplate())
+			|| checkItem(eq.getLeggings())
+			|| checkItem(eq.getBoots());
 	}
 
 	private boolean checkItem(ItemStack item) {
-		MagicItemData data = MagicItems.getMagicItemDataFromItemStack(item);
-		if (data == null) return false;
-
-		return itemData.matches(data);
+		return item != null && itemData.matches(item);
 	}
 	
 }

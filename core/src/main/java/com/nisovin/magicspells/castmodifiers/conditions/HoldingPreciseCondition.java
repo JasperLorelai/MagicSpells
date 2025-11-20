@@ -2,7 +2,6 @@ package com.nisovin.magicspells.castmodifiers.conditions;
 
 import org.bukkit.Location;
 import org.bukkit.entity.LivingEntity;
-import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.EntityEquipment;
 
 import org.jetbrains.annotations.NotNull;
@@ -41,11 +40,7 @@ public class HoldingPreciseCondition extends Condition {
 	private boolean checkHolding(LivingEntity target) {
 		EntityEquipment equipment = target.getEquipment();
 		if (equipment == null) return false;
-
-		ItemStack item = equipment.getItemInMainHand();
-		MagicItemData data = MagicItems.getMagicItemDataFromItemStack(item);
-
-		return itemData.matches(data);
+		return itemData.matches(equipment.getItemInMainHand());
 	}
 
 }

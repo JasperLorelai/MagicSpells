@@ -82,9 +82,7 @@ public class GiveDamageListener extends PassiveListener {
 		if (!items.isEmpty()) {
 			EntityEquipment eq = caster.getEquipment();
 			if (eq == null) return;
-
-			MagicItemData itemData = MagicItems.getMagicItemDataFromItemStack(eq.getItemInMainHand());
-			if (!contains(itemData)) return;
+			if (!MagicItemData.matchesAny(eq.getItemInMainHand(), items)) return;
 		}
 
 		boolean casted = passiveSpell.activate(caster, attacked);
@@ -104,13 +102,6 @@ public class GiveDamageListener extends PassiveListener {
 			return (LivingEntity) ((Projectile) e).getShooter();
 		}
 		return null;
-	}
-
-	private boolean contains(MagicItemData itemData) {
-		for (MagicItemData data : items) {
-			if (data.matches(itemData)) return true;
-		}
-		return false;
 	}
 
 }
