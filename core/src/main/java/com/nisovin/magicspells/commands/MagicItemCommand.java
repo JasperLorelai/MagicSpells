@@ -12,7 +12,6 @@ import org.incendo.cloud.context.CommandContext;
 import org.incendo.cloud.description.Description;
 import org.incendo.cloud.parser.flag.CommandFlag;
 import org.incendo.cloud.paper.PaperCommandManager;
-import org.incendo.cloud.parser.standard.StringParser;
 import org.incendo.cloud.parser.standard.IntegerParser;
 import org.incendo.cloud.suggestion.SuggestionProvider;
 import org.incendo.cloud.bukkit.data.MultiplePlayerSelector;
@@ -26,6 +25,7 @@ import io.papermc.paper.command.brigadier.CommandSourceStack;
 import com.nisovin.magicspells.Perm;
 import com.nisovin.magicspells.util.magicitems.MagicItem;
 import com.nisovin.magicspells.util.magicitems.MagicItems;
+import com.nisovin.magicspells.commands.parsers.LenientQuotedStringParser;
 import com.nisovin.magicspells.commands.exceptions.InvalidCommandArgumentException;
 
 public class MagicItemCommand {
@@ -49,7 +49,7 @@ public class MagicItemCommand {
 			)
 			.required(
 				MAGIC_ITEM_KEY,
-				StringParser.stringParser(),
+				LenientQuotedStringParser.lenientQuotedStringParser(),
 				Description.of("The magic item to give."),
 				SuggestionProvider.suggestingStrings(MagicItems.getMagicItemKeys())
 			)
