@@ -99,6 +99,7 @@ public class MagicCommands {
 		// Less restrictive in terms of valid non-quoted characters compared to the brigadier string type.
 		brigadierMapper.mapSimpleNMS(new TypeToken<OwnedSpellParser>() {}, "nbt_path", true);
 		brigadierMapper.mapSimpleNMS(new TypeToken<SpellParser<CommandSourceStack>>() {}, "nbt_path", true);
+		brigadierMapper.mapSimpleNMS(new TypeToken<LenientQuotedStringParser<CommandSourceStack>>() {}, "nbt_path", true);
 
 		MinecraftExceptionHandler.create(CommandSourceStack::getSender)
 			.defaultHandlers()

@@ -30,6 +30,7 @@ import com.nisovin.magicspells.util.VariableMod;
 import com.nisovin.magicspells.variables.Variable;
 import com.nisovin.magicspells.util.managers.VariableManager;
 import com.nisovin.magicspells.variables.variabletypes.GlobalVariable;
+import com.nisovin.magicspells.commands.parsers.LenientQuotedStringParser;
 import com.nisovin.magicspells.variables.variabletypes.GlobalStringVariable;
 import com.nisovin.magicspells.commands.exceptions.InvalidCommandArgumentException;
 
@@ -44,7 +45,7 @@ public class VariableCommands {
 
 		var variableComponent = CommandComponent.<CommandSourceStack, String>builder()
 			.key(VARIABLE_KEY)
-			.parser(StringParser.stringParser())
+			.parser(LenientQuotedStringParser.lenientQuotedStringParser())
 			.suggestionProvider(SuggestionProvider.suggestingStrings(
 				() -> MagicSpells.getVariableManager().getVariables().keySet().iterator()
 			));
