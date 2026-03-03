@@ -1864,7 +1864,7 @@ public class MagicSpells extends JavaPlugin {
 	 * @return the formatted string
 	 */
 	public static String formatMessage(String message, SpellData data, String... replacements) {
-		if (message == null || message.isEmpty()) return message;
+		if (message == null || message.isEmpty()) return "";
 
 		List<String> replacementList = new ArrayList<>();
 		if (replacements != null) replacementList.addAll(Arrays.asList(replacements));
