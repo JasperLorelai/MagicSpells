@@ -80,29 +80,31 @@ public class LevitateSpell extends TargetedSpell implements TargetedEntitySpell 
 	}
 
 	@Override
-	public CastResult cast(SpellCastState state, SpellData data) {
+	public CastResult cast(SpellData data) {
 		if (isLevitating(data.caster())) {
 			levitating.remove(data.caster().getUniqueId()).stop();
 			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 		}
 
-		if (state != SpellCastState.NORMAL) return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
-
 		TargetInfo<LivingEntity> info = getTargetedEntity(data);
 		if (info.noTarget()) return noTarget(info);
 
-		return castAtEntity(info.spellData());
-	}
-
-	@Override
-	public CastResult cast(SpellData data) {
-		return cast(SpellCastState.NORMAL, data);
+		return levitate(info.spellData());
 	}
 
 	@Override
 	public CastResult castAtEntity(SpellData data) {
 		if (!data.hasCaster()) return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 
+		if (isLevitating(data.caster())) {
+			levitating.remove(data.caster().getUniqueId()).stop();
+			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
+		}
+
+		return levitate(data);
+	}
+
+	public CastResult levitate(SpellData data) {
 		LivingEntity caster = data.caster();
 		LivingEntity target = data.target();
 
