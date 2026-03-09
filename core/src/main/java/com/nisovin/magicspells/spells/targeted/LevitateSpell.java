@@ -91,7 +91,7 @@ public class LevitateSpell extends TargetedSpell implements TargetedEntitySpell 
 		TargetInfo<LivingEntity> info = getTargetedEntity(data);
 		if (info.noTarget()) return noTarget(info);
 
-		return castAtEntity(info.spellData());
+		return levitate(info.spellData());
 	}
 
 	@Override
@@ -103,6 +103,15 @@ public class LevitateSpell extends TargetedSpell implements TargetedEntitySpell 
 	public CastResult castAtEntity(SpellData data) {
 		if (!data.hasCaster()) return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 
+		if (isLevitating(data.caster())) {
+			levitating.remove(data.caster().getUniqueId()).stop();
+			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
+		}
+
+		return levitate(data);
+	}
+
+	public CastResult levitate(SpellData data) {
 		LivingEntity caster = data.caster();
 		LivingEntity target = data.target();
 
