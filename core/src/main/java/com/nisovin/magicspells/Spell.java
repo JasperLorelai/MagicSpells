@@ -1236,7 +1236,7 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 	public void sendMessages(SpellData data, String... replacements) {
 		sendMessage(strCastSelf, data.caster(), data, replacements);
 		sendMessage(strCastTarget, data.target(), data, replacements);
-		sendMessageNear(strCastOthers, data, broadcastRange.get(data), replacements);
+		sendMessageNear(strCastOthers, data, replacements);
 	}
 
 	protected boolean preCastTimeCheck(LivingEntity livingEntity, String[] args) {
@@ -2296,8 +2296,7 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 	 */
 	@Deprecated
 	protected void sendMessageNear(LivingEntity livingEntity, String message) {
-		SpellData data = new SpellData(livingEntity);
-		sendMessageNear(message, data, broadcastRange.get(data));
+		sendMessageNear(message, new SpellData(livingEntity));
 	}
 
 	/**
@@ -2323,6 +2322,17 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 	@Deprecated
 	protected void sendMessageNear(LivingEntity livingEntity, Player ignore, String message, int range, String[] args, String... replacements) {
 		sendMessageNear(message, new SpellData(livingEntity, ignore, 1f, args), range, replacements);
+	}
+
+	/**
+	 * Sends a message to all players near the specified player, within the default broadcast range.
+	 *
+	 * @param message      the message to send
+	 * @param data         the associated spell data
+	 * @param replacements replacements to be done on message
+	 */
+	protected void sendMessageNear(String message, SpellData data, String... replacements) {
+		sendMessageNear(message, data, broadcastRange.get(data), replacements);
 	}
 
 	/**
