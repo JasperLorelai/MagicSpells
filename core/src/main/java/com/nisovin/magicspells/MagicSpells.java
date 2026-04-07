@@ -1748,7 +1748,7 @@ public class MagicSpells extends JavaPlugin {
 		return message;
 	}
 
-	private static final Pattern ARGUMENT_PATTERN = Pattern.compile("%arg:(\\d+):([^%]+)%", Pattern.CASE_INSENSITIVE | Pattern.MULTILINE);
+	private static final Pattern ARGUMENT_PATTERN = Pattern.compile("%arg:(\\d+)(?::([^%]+))?%", Pattern.CASE_INSENSITIVE | Pattern.MULTILINE);
 	public static String doArgumentSubstitution(String string, String[] args) {
 		if (string == null || string.isEmpty()) return string;
 
@@ -1759,6 +1759,7 @@ public class MagicSpells extends JavaPlugin {
 			int argIndex = Integer.parseInt(matcher.group(1)) - 1;
 
 			String newValue = matcher.group(2);
+			if (newValue == null) newValue = "";
 			if (args != null && argIndex >= 0 && argIndex < args.length) newValue = args[argIndex];
 
 			matcher.appendReplacement(builder, Matcher.quoteReplacement(newValue));
