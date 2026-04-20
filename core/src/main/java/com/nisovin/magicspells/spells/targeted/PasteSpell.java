@@ -5,8 +5,15 @@ import java.util.List;
 import java.util.ArrayList;
 import java.io.IOException;
 import java.io.FileInputStream;
+import java.util.function.Predicate;
 
+import org.bukkit.World;
+import org.bukkit.Material;
 import org.bukkit.Location;
+import org.bukkit.block.Block;
+import org.bukkit.block.BlockType;
+
+import io.papermc.paper.registry.RegistryKey;
 
 import com.sk89q.worldedit.WorldEdit;
 import com.sk89q.worldedit.EditSession;
@@ -30,7 +37,7 @@ import com.nisovin.magicspells.events.SpellTargetLocationEvent;
 
 public class PasteSpell extends TargetedSpell implements TargetedLocationSpell {
 
-	private final List<EditSession> sessions;
+	private final List<EditSession> sessions = new ArrayList<>();
 
 	private Clipboard clipboard;
 
@@ -42,6 +49,9 @@ public class PasteSpell extends TargetedSpell implements TargetedLocationSpell {
 	private final ConfigData<Boolean> pasteAir;
 	private final ConfigData<Boolean> removePaste;
 	private final ConfigData<Boolean> pasteAtCaster;
+	private final ConfigData<Boolean> pasteStructureVoid;
+
+	private final Predicate<BlockType> preventOverwrite;
 
 	public PasteSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
@@ -58,8 +68,11 @@ public class PasteSpell extends TargetedSpell implements TargetedLocationSpell {
 		pasteAir = getConfigDataBoolean("paste-air", false);
 		removePaste = getConfigDataBoolean("remove-paste", true);
 		pasteAtCaster = getConfigDataBoolean("paste-at-caster", false);
+		pasteStructureVoid = getConfigDataBoolean("paste-structure-void", false);
 
-		sessions = new ArrayList<>();
+		if (config.isBoolean(internalKey + "prevent-overwrite")) {
+			preventOverwrite = getConfigBoolean("prevent-overwrite", false) ? _ -> true : null;
+		} else preventOverwrite = getConfigRegistryEntryPredicate("prevent-overwrite", RegistryKey.BLOCK);
 	}
 
 	@Override
@@ -110,11 +123,37 @@ public class PasteSpell extends TargetedSpell implements TargetedLocationSpell {
 		target.add(0, yOffset.get(data), 0);
 		data = data.location(target);
 
-		try (EditSession editSession = WorldEdit.getInstance().newEditSession(BukkitAdapter.adapt(target.getWorld()))) {
+		World world = target.getWorld();
+		BlockVector3 pasteTo = BukkitAdapter.asBlockVector(target);
+
+		boolean ignoreAir = !pasteAir.get(data);
+		boolean ignoreStructureVoid = !pasteStructureVoid.get(data);
+
+		if (preventOverwrite != null) {
+			BlockVector3 offset = pasteTo.subtract(clipboard.getOrigin());
+
+			for (BlockVector3 pos : clipboard.getRegion()) {
+				BlockVector3 worldPos = pos.add(offset);
+				Block origin = world.getBlockAt(worldPos.x(), worldPos.y(), worldPos.z());
+
+				if (origin.isEmpty()) continue;
+				if (!preventOverwrite.test(origin.getType().asBlockType())) continue;
+
+				Material place = BukkitAdapter.adapt(clipboard.getFullBlock(pos).getBlockType());
+
+				if (ignoreAir && place.isAir()) continue;
+				if (ignoreStructureVoid && place == Material.STRUCTURE_VOID) continue;
+
+				return noTarget(data);
+			}
+		}
+
+		try (EditSession editSession = WorldEdit.getInstance().newEditSession(BukkitAdapter.adapt(world))) {
 			Operation operation = new ClipboardHolder(clipboard)
 				.createPaste(editSession)
-				.to(BlockVector3.at(target.getX(), target.getY(), target.getZ()))
-				.ignoreAirBlocks(!pasteAir.get(data))
+				.to(pasteTo)
+				.ignoreAirBlocks(ignoreAir)
+				.ignoreStructureVoidBlocks(ignoreStructureVoid)
 				.build();
 
 			Operations.complete(operation);
