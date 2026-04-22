@@ -156,36 +156,21 @@ public class EntityData {
 
 		addOptVector(transformers, config, "velocity", Entity.class, Entity::setVelocity);
 
-		for (Object object : config.getList("scoreboard-tags", new ArrayList<>())) {
-			switch (object) {
-				case String string -> {
-					ConfigData<String> tag = ConfigDataUtil.getString(string);
-					transformers.put(Entity.class, (Entity entity, SpellData data) -> entity.addScoreboardTag(tag.get(data)));
-				}
-				case Map<?, ?> map -> {
-					ConfigurationSection section = ConfigReaderUtil.mapToSection(map);
+		addOptBoolean(transformers, config, "scoreboard-tags.clear", Entity.class, (entity, clear) -> {
+			if (clear) entity.getScoreboardTags().clear();
+		});
 
-					ConfigData<EntityTagOperation> operation = ConfigDataUtil.getEnum(section, "operation", EntityTagOperation.class, EntityTagOperation.ADD);
-					ConfigData<String> tagData = ConfigDataUtil.getString(section, "tag", null);
+		for (String string : config.getStringList("scoreboard-tags.remove")) {
+			ConfigData<String> tag = ConfigDataUtil.getString(string);
+			transformers.put(Entity.class, (Entity entity, SpellData data) -> entity.removeScoreboardTag(tag.get(data)));
+		}
 
-					transformers.put(Entity.class, (Entity entity, SpellData data) -> {
-						switch (operation.get(data)) {
-							case ADD -> {
-								String tag = tagData.get(data);
-								if (tag == null) break;
-								entity.addScoreboardTag(tag);
-							}
-							case REMOVE -> {
-								String tag = tagData.get(data);
-								if (tag == null) break;
-								entity.removeScoreboardTag(tag);
-							}
-							case CLEAR -> entity.getScoreboardTags().clear();
-						}
-					});
-				}
-				default -> {}
-			}
+		List<String> entityTagsAdd = new ArrayList<>();
+		entityTagsAdd.addAll(config.getStringList("scoreboard-tags"));
+		entityTagsAdd.addAll(config.getStringList("scoreboard-tags.add"));
+		for (String string : entityTagsAdd) {
+			ConfigData<String> tag = ConfigDataUtil.getString(string);
+			transformers.put(Entity.class, (Entity entity, SpellData data) -> entity.addScoreboardTag(tag.get(data)));
 		}
 
 		// Ageable
@@ -1442,12 +1427,6 @@ public class EntityData {
 	@ApiStatus.Internal
 	public ConfigData<Villager.Profession> getProfession() {
 		return profession;
-	}
-
-	private enum EntityTagOperation {
-		ADD,
-		REMOVE,
-		CLEAR,
 	}
 
 	private record DelayedEntityData(EntityData data, ConfigData<Long> delay, ConfigData<Long> interval, ConfigData<Long> iterations) {
