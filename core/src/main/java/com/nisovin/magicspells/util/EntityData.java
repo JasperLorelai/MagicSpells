@@ -26,6 +26,7 @@ import com.destroystokyo.paper.entity.ai.GoalType;
 import org.bukkit.*;
 import org.bukkit.entity.*;
 import org.bukkit.util.Vector;
+import org.bukkit.block.BlockFace;
 import org.bukkit.util.EulerAngle;
 import org.bukkit.inventory.MainHand;
 import org.bukkit.attribute.Attribute;
@@ -156,6 +157,17 @@ public class EntityData {
 
 		addOptVector(transformers, config, "velocity", Entity.class, Entity::setVelocity);
 
+		ConfigData<Pose> poseData = ConfigDataUtil.getEnum(config, "pose", Pose.class, null);
+		ConfigData<Boolean> poseFixed = ConfigDataUtil.getBoolean(config, "pose-fixed", false);
+		transformers.put(Entity.class, (Entity entity,  SpellData data) -> {
+			Pose pose = poseData.get(data);
+			if (pose == null) return;
+
+			try {
+				entity.setPose(pose, poseFixed.get(data));
+			} catch (IllegalArgumentException ignored) {} // debug
+		});
+
 		addOptBoolean(transformers, config, "scoreboard-tags.clear", Entity.class, (entity, clear) -> {
 			if (clear) entity.getScoreboardTags().clear();
 		});
@@ -235,17 +247,20 @@ public class EntityData {
 
 		// Tameable
 		tamed = addBoolean(transformers, config, "tamed", false, Tameable.class, Tameable::setTamed, forceOptional);
-		if (config.getBoolean("tamed-owner")) {
-			transformers.put(Tameable.class, (Tameable tameable, SpellData data) -> {
-				if (!(data.recipient() instanceof AnimalTamer tamer)) return;
-				tameable.setOwner(tamer);
-			});
-		}
+
+		ConfigData<Boolean> tamedOwner = ConfigDataUtil.getBoolean(config, "tamed-owner", false);
+		transformers.put(Tameable.class, (Tameable tameable, SpellData data) -> {
+			if (!(data.recipient() instanceof AnimalTamer tamer) || !tamedOwner.get(data)) return;
+			tameable.setOwner(tamer);
+		});
 
 		// Abstract Horse
 		saddled = addBoolean(transformers, config, "saddled", false, AbstractHorse.class, (horse, saddled) -> {
 			if (saddled) horse.getInventory().setSaddle(new ItemStack(Material.SADDLE));
 		}, forceOptional);
+
+		// Abstract Skeleton
+		addOptBoolean(transformers, config, "skeleton.should-burn-in-day", AbstractSkeleton.class, AbstractSkeleton::setShouldBurnInDay);
 
 		// Armor Stand
 		fallback(
@@ -335,11 +350,14 @@ public class EntityData {
 			key -> addOptRegistryEntry(transformers, config, key, Cat.class, RegistryKey.CAT_VARIANT, Cat::setCatType),
 			"cat.variant", "cat-variant", "type"
 		);
+		addOptRegistryEntry(transformers, config, "cat.sound-variant", Cat.class, RegistryKey.CAT_SOUND_VARIANT, Cat::setSoundVariant);
 
 		// Chicken
 		addOptRegistryEntry(transformers, config, "chicken.variant", Chicken.class, RegistryKey.CHICKEN_VARIANT, Chicken::setVariant);
+		addOptRegistryEntry(transformers, config, "chicken.sound-variant", Chicken.class, RegistryKey.CHICKEN_SOUND_VARIANT, Chicken::setSoundVariant);
 
 		// Copper Golem
+		addOptEnum(transformers, config, "copper-golem.golem-state", CopperGolem.class, CopperGolem.State.class, CopperGolem::setGolemState);
 		addOptEnum(transformers, config, "copper-golem.weathering-state", CopperGolem.class, WeatheringCopperState.class, CopperGolem::setWeatheringState);
 		addOptLong(transformers, config, "copper-golem.oxidizing", CopperGolem.class, (golem, next) -> {
 			long time = golem.getWorld().getGameTime() + next;
@@ -363,6 +381,7 @@ public class EntityData {
 
 		// Cow
 		addOptRegistryEntry(transformers, config, "cow.variant", Cow.class, RegistryKey.COW_VARIANT, Cow::setVariant);
+		addOptRegistryEntry(transformers, config, "cow.sound-variant", Cow.class, RegistryKey.COW_SOUND_VARIANT, Cow::setSoundVariant);
 
 		// ChestedHorse
 		chested = addBoolean(transformers, config, "chested", false, ChestedHorse.class, ChestedHorse::setCarryingChest, forceOptional);
@@ -556,6 +575,10 @@ public class EntityData {
 			"phantom.should-burn-in-day", "should-burn-in-day"
 		);
 
+		// Pig
+		addOptRegistryEntry(transformers, config, "pig.variant", Pig.class, RegistryKey.PIG_VARIANT, Pig::setVariant);
+		addOptRegistryEntry(transformers, config, "pig.sound-variant", Pig.class, RegistryKey.PIG_SOUND_VARIANT, Pig::setSoundVariant);
+
 		// Piglin
 		addOptBoolean(transformers, config, "piglin.can-hunt", Piglin.class, Piglin::setIsAbleToHunt);
 		addOptInteger(transformers, config, "piglin.dancing", Piglin.class, Piglin::setDancing);
@@ -591,13 +614,24 @@ public class EntityData {
 		);
 
 		// Shulker
+		addOptFloat(transformers, config, "shulker.peek", Shulker.class, (shulker, value) -> {
+			try {
+				shulker.setPeek(value);
+			} catch (IllegalArgumentException _) {} // debug
+		});
+
 		fallback(
 			key -> addOptEnum(transformers, config, key, Shulker.class, DyeColor.class, Shulker::setColor),
 			"shulker.color", "shulker-color", "color"
 		);
+		addOptEnum(transformers, config, "shulker.attach-face", Shulker.class, BlockFace.class, (shulker, face) -> {
+			try {
+				shulker.setAttachedFace(face);
+			} catch (IllegalArgumentException _) {} // debug
+		});
 
-		// Skeleton
-		addOptBoolean(transformers, config, "should-burn-in-day", Skeleton.class, Skeleton::setShouldBurnInDay);
+		// Sittable
+		addOptBoolean(transformers, config, "sitting", Sittable.class, Sittable::setSitting);
 
 		// Slime
 		fallback(
@@ -654,6 +688,9 @@ public class EntityData {
 			key -> addOptBoolean(transformers, config, key, Zombie.class, Zombie::setShouldBurnInDay),
 			"zombie.should-burn-in-day", "should-burn-in-day"
 		);
+
+		// Zombie Nautilus
+		addOptRegistryEntry(transformers, config, "zombie-nautilus.variant", ZombieNautilus.class, RegistryKey.ZOMBIE_NAUTILUS_VARIANT, ZombieNautilus::setVariant);
 
 		// Zombie Villager
 		addOptRegistryEntry(transformers, config, "zombie-villager.profession", ZombieVillager.class, Registry.VILLAGER_PROFESSION, ZombieVillager::setVillagerProfession);
