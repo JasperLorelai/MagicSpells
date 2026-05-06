@@ -3,18 +3,13 @@ package com.nisovin.magicspells.spells.targeted;
 import org.bukkit.entity.Player;
 
 import com.nisovin.magicspells.util.*;
-import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.spells.TargetedSpell;
-import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.spells.TargetedEntitySpell;
 
-public class CloseInventorySpell extends TargetedSpell implements TargetedEntitySpell {
+public class CloseDialogSpell extends TargetedSpell implements TargetedEntitySpell {
 
-	private final ConfigData<Integer> delay;
-
-	public CloseInventorySpell(MagicConfig config, String spellName) {
+	public CloseDialogSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
-		delay = getConfigDataInt("delay", 0);
 	}
 
 	@Override
@@ -32,18 +27,9 @@ public class CloseInventorySpell extends TargetedSpell implements TargetedEntity
 	}
 
 	private CastResult close(Player target, SpellData data) {
-		int delay = this.delay.get(data);
+		target.closeDialog();
 
-		if (delay > 0) {
-			MagicSpells.scheduleDelayedTask(() -> {
-				target.closeInventory();
-				playSpellEffects(data);
-			}, delay);
-		} else {
-			target.closeInventory();
-			playSpellEffects(data);
-		}
-
+		playSpellEffects(data);
 		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 	}
 
