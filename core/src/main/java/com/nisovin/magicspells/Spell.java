@@ -942,7 +942,7 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 	}
 
 	protected <T extends Keyed> ConfigData<T> getConfigDataRegistryEntry(@NotNull String key, @NotNull RegistryKey<T> registryKey, @Nullable T def) {
-		return ConfigDataUtil.getRegistryEntry(config.getMainConfig(), internalKey + key, RegistryAccess.registryAccess().getRegistry(registryKey), def);
+		return ConfigDataUtil.getRegistryEntry(config.getMainConfig(), internalKey + key, registryKey, def);
 	}
 
 	protected <T extends Keyed> ConfigData<T> getConfigDataRegistryEntry(@NotNull String key, @NotNull Registry<T> registry, @Nullable T def) {
