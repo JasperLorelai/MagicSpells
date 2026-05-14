@@ -7,6 +7,9 @@ import java.util.function.Function;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import io.papermc.paper.registry.RegistryKey;
+import io.papermc.paper.registry.RegistryAccess;
+
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 
@@ -731,6 +734,10 @@ public class ConfigDataUtil {
 
 			};
 		}
+	}
+
+	public static <T extends Keyed> ConfigData<T> getRegistryEntry(@NotNull ConfigurationSection config, @NotNull String path, @NotNull RegistryKey<T> registryKey, @Nullable T def) {
+		return getRegistryEntry(config, path, RegistryAccess.registryAccess().getRegistry(registryKey), def);
 	}
 
 	public static <T extends Keyed> ConfigData<T> getRegistryEntry(@NotNull ConfigurationSection config, @NotNull String path, @NotNull Registry<T> registry, @Nullable T def) {
