@@ -80,6 +80,7 @@ public class SpellEffectManager {
 		addSpellEffect(EffectLibLineEffect.class);
 		addSpellEffect(EnderSignalEffect.class);
 		addSpellEffect(EntityEffect.class);
+		addSpellEffect(ExperienceEffect.class);
 		addSpellEffect(ExplosionEffect.class);
 		addSpellEffect(FireworksEffect.class);
 		addSpellEffect(GameTestAddMarkerEffect.class);
