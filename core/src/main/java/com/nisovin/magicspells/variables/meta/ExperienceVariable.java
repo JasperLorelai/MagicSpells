@@ -17,7 +17,7 @@ public class ExperienceVariable extends MetaVariable {
 	@Override
 	public void set(String player, double amount) {
 		Player p = Bukkit.getPlayerExact(player);
-		if (p != null) p.setExp((int) amount);
+		if (p != null) p.setExp((float) amount);
 	}
 
 }
