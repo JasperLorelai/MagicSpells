@@ -62,6 +62,10 @@ shadowJar {
     archiveClassifier.set("")
 }
 
+jar {
+    enabled = false
+}
+
 generateGrammarSource {
     packageName = "com.nisovin.magicspells.util.grammars"
     arguments += ["-visitor", "-no-listener"]
