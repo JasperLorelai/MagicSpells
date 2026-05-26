@@ -2,6 +2,7 @@ package com.nisovin.magicspells;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.MustBeInvokedByOverriders;
 
 import de.slikey.effectlib.Effect;
 
@@ -537,6 +538,7 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 		return reagents;
 	}
 
+	@MustBeInvokedByOverriders
 	protected void initializeVariables() {
 		// Variable options
 		if (varModsCast != null && !varModsCast.isEmpty()) {
@@ -584,6 +586,7 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 		if (reagents == null) reagents = new SpellReagents();
 	}
 
+	@MustBeInvokedByOverriders
 	protected void initializeSpellEffects() {
 		// Graphical effects
 		effectTrackerSet = new HashSet<>();
@@ -652,6 +655,7 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 
 	// DEBUG INFO: level 2, adding modifiers to internalname
 	// DEBUG INFO: level 2, adding target modifiers to internalname
+	@MustBeInvokedByOverriders
 	protected void initializeModifiers() {
 		// Modifiers
 		if (modifierStrings != null && !modifierStrings.isEmpty()) {
@@ -684,6 +688,7 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 	/**
 	 * This method is called immediately after all spells have been loaded.
 	 */
+	@MustBeInvokedByOverriders
 	protected void initialize() {
 		// Process shared cooldowns
 		List<?> rawSharedCooldowns = config.getList(internalKey + "shared-cooldowns", null);
