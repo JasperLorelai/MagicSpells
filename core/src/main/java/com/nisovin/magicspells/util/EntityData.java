@@ -26,6 +26,7 @@ import com.destroystokyo.paper.entity.ai.GoalType;
 import org.bukkit.*;
 import org.bukkit.entity.*;
 import org.bukkit.util.Vector;
+import org.bukkit.block.BlockFace;
 import org.bukkit.util.EulerAngle;
 import org.bukkit.inventory.MainHand;
 import org.bukkit.attribute.Attribute;
@@ -156,6 +157,17 @@ public class EntityData {
 
 		addOptVector(transformers, config, "velocity", Entity.class, Entity::setVelocity);
 
+		ConfigData<Pose> poseData = ConfigDataUtil.getEnum(config, "pose", Pose.class, null);
+		ConfigData<Boolean> poseFixed = ConfigDataUtil.getBoolean(config, "pose-fixed", false);
+		transformers.put(Entity.class, (Entity entity,  SpellData data) -> {
+			Pose pose = poseData.get(data);
+			if (pose == null) return;
+
+			try {
+				entity.setPose(pose, poseFixed.get(data));
+			} catch (IllegalArgumentException ignored) {} // debug
+		});
+
 		addOptBoolean(transformers, config, "scoreboard-tags.clear", Entity.class, (entity, clear) -> {
 			if (clear) entity.getScoreboardTags().clear();
 		});
@@ -235,36 +247,72 @@ public class EntityData {
 
 		// Tameable
 		tamed = addBoolean(transformers, config, "tamed", false, Tameable.class, Tameable::setTamed, forceOptional);
-		if (config.getBoolean("tamed-owner")) {
-			transformers.put(Tameable.class, (Tameable tameable, SpellData data) -> {
-				if (!(data.recipient() instanceof AnimalTamer tamer)) return;
-				tameable.setOwner(tamer);
-			});
-		}
 
-		// AbstractHorse
+		ConfigData<Boolean> tamedOwner = ConfigDataUtil.getBoolean(config, "tamed-owner", false);
+		transformers.put(Tameable.class, (Tameable tameable, SpellData data) -> {
+			if (!(data.recipient() instanceof AnimalTamer tamer) || !tamedOwner.get(data)) return;
+			tameable.setOwner(tamer);
+		});
+
+		// Abstract Horse
 		saddled = addBoolean(transformers, config, "saddled", false, AbstractHorse.class, (horse, saddled) -> {
 			if (saddled) horse.getInventory().setSaddle(new ItemStack(Material.SADDLE));
 		}, forceOptional);
 
+		// Abstract Skeleton
+		addOptBoolean(transformers, config, "skeleton.should-burn-in-day", AbstractSkeleton.class, AbstractSkeleton::setShouldBurnInDay);
+
 		// Armor Stand
-		addBoolean(transformers, config, "small", false, ArmorStand.class, ArmorStand::setSmall, forceOptional);
-		addBoolean(transformers, config, "marker", false, ArmorStand.class, ArmorStand::setMarker, forceOptional);
-		addBoolean(transformers, config, "visible", true, ArmorStand.class, ArmorStand::setVisible, forceOptional);
-		addBoolean(transformers, config, "has-arms", true, ArmorStand.class, ArmorStand::setArms, forceOptional);
-		addBoolean(transformers, config, "has-base-plate", true, ArmorStand.class, ArmorStand::setBasePlate, forceOptional);
-		addBoolean(transformers, config, "disable-slots", false, ArmorStand.class, (stand, disabled) -> {
+		fallback(
+			key -> addBoolean(transformers, config, key, false, ArmorStand.class, ArmorStand::setSmall, forceOptional),
+			"armor-stand.small", "small"
+		);
+		fallback(
+			key -> addBoolean(transformers, config, key, false, ArmorStand.class, ArmorStand::setMarker, forceOptional),
+			"armor-stand.marker", "marker"
+		);
+		fallback(
+			key -> addBoolean(transformers, config, key, true, ArmorStand.class, ArmorStand::setVisible, forceOptional),
+			"armor-stand.visible", "visible"
+		);
+		fallback(
+			key -> addBoolean(transformers, config, key, true, ArmorStand.class, ArmorStand::setArms, forceOptional),
+			"armor-stand.has-arms", "has-arms"
+		);
+		fallback(
+			key -> addBoolean(transformers, config, key, true, ArmorStand.class, ArmorStand::setBasePlate, forceOptional),
+			"armor-stand.has-base-plate", "has-base-plate"
+		);
+		addBoolean(transformers, config, "armor-stand.disable-slots", false, ArmorStand.class, (stand, disabled) -> {
 			if (disabled) stand.setDisabledSlots(EquipmentSlot.values());
 		}, forceOptional);
 
-		addEulerAngle(transformers, config, "head-angle", EulerAngle.ZERO, ArmorStand.class, ArmorStand::setHeadPose, forceOptional);
-		addEulerAngle(transformers, config, "body-angle", EulerAngle.ZERO, ArmorStand.class, ArmorStand::setBodyPose, forceOptional);
-		addEulerAngle(transformers, config, "left-arm-angle", EulerAngle.ZERO, ArmorStand.class, ArmorStand::setLeftArmPose, forceOptional);
-		addEulerAngle(transformers, config, "right-arm-angle", EulerAngle.ZERO, ArmorStand.class, ArmorStand::setRightArmPose, forceOptional);
-		addEulerAngle(transformers, config, "left-leg-angle", EulerAngle.ZERO, ArmorStand.class, ArmorStand::setLeftLegPose, forceOptional);
-		addEulerAngle(transformers, config, "right-leg-angle", EulerAngle.ZERO, ArmorStand.class, ArmorStand::setRightLegPose, forceOptional);
+		fallback(
+			key -> addEulerAngle(transformers, config, key, EulerAngle.ZERO, ArmorStand.class, ArmorStand::setHeadPose, forceOptional),
+			"armor-stand.head-angle", "head-angle"
+		);
+		fallback(
+			key -> addEulerAngle(transformers, config, key, EulerAngle.ZERO, ArmorStand.class, ArmorStand::setBodyPose, forceOptional),
+			"armor-stand.body-angle", "body-angle"
+		);
+		fallback(
+			key -> addEulerAngle(transformers, config, key, EulerAngle.ZERO, ArmorStand.class, ArmorStand::setLeftArmPose, forceOptional),
+			"armor-stand.left-arm-angle", "left-arm-angle"
+		);
+		fallback(
+			key -> addEulerAngle(transformers, config, key, EulerAngle.ZERO, ArmorStand.class, ArmorStand::setRightArmPose, forceOptional),
+			"armor-stand.right-arm-angle", "right-arm-angle"
+		);
+		fallback(
+			key -> addEulerAngle(transformers, config, key, EulerAngle.ZERO, ArmorStand.class, ArmorStand::setLeftLegPose, forceOptional),
+			"armor-stand.left-leg-angle", "left-leg-angle"
+		);
+		fallback(
+			key -> addEulerAngle(transformers, config, key, EulerAngle.ZERO, ArmorStand.class, ArmorStand::setRightLegPose, forceOptional),
+			"armor-stand.right-leg-angle", "right-leg-angle"
+		);
 
-		for (String slotName : config.getStringList("disable-slots")) {
+		for (String slotName : config.getStringList("armor-stand.disable-slots")) {
 			ConfigData<EquipmentSlot> slotData = ConfigDataUtil.getEnum(slotName, EquipmentSlot.class, null);
 
 			transformers.put(ArmorStand.class, (ArmorStand stand, SpellData data) -> {
@@ -275,7 +323,7 @@ public class EntityData {
 			});
 		}
 
-		for (Object object : config.getList("equipment-locks", new ArrayList<>())) {
+		for (Object object : config.getList("armor-stand.equipment-locks", new ArrayList<>())) {
 			if (!(object instanceof Map<?,?> map)) continue;
 			ConfigurationSection section = ConfigReaderUtil.mapToSection(map);
 
@@ -294,19 +342,22 @@ public class EntityData {
 		// Axolotl
 		fallback(
 			key -> addOptEnum(transformers, config, key, Axolotl.class, Axolotl.Variant.class, Axolotl::setVariant),
-			"axolotl-variant", "type"
+			"axolotl.variant", "axolotl-variant", "type"
 		);
 
 		// Cat
 		fallback(
 			key -> addOptRegistryEntry(transformers, config, key, Cat.class, RegistryKey.CAT_VARIANT, Cat::setCatType),
-			"cat-variant", "type"
+			"cat.variant", "cat-variant", "type"
 		);
+		addOptRegistryEntry(transformers, config, "cat.sound-variant", Cat.class, RegistryKey.CAT_SOUND_VARIANT, Cat::setSoundVariant);
 
 		// Chicken
-		addOptRegistryEntry(transformers, config, "chicken-variant", Chicken.class, RegistryKey.CHICKEN_VARIANT, Chicken::setVariant);
+		addOptRegistryEntry(transformers, config, "chicken.variant", Chicken.class, RegistryKey.CHICKEN_VARIANT, Chicken::setVariant);
+		addOptRegistryEntry(transformers, config, "chicken.sound-variant", Chicken.class, RegistryKey.CHICKEN_SOUND_VARIANT, Chicken::setSoundVariant);
 
 		// Copper Golem
+		addOptEnum(transformers, config, "copper-golem.golem-state", CopperGolem.class, CopperGolem.State.class, CopperGolem::setGolemState);
 		addOptEnum(transformers, config, "copper-golem.weathering-state", CopperGolem.class, WeatheringCopperState.class, CopperGolem::setWeatheringState);
 		addOptLong(transformers, config, "copper-golem.oxidizing", CopperGolem.class, (golem, next) -> {
 			long time = golem.getWorld().getGameTime() + next;
@@ -326,10 +377,11 @@ public class EntityData {
 		);
 
 		// CommandMinecart
-		addOptString(transformers, config, "command", CommandMinecart.class, CommandMinecart::setCommand);
+		addOptString(transformers, config, "minecart.command", CommandMinecart.class, CommandMinecart::setCommand);
 
 		// Cow
-		addOptRegistryEntry(transformers, config, "cow-variant", Cow.class, RegistryKey.COW_VARIANT, Cow::setVariant);
+		addOptRegistryEntry(transformers, config, "cow.variant", Cow.class, RegistryKey.COW_VARIANT, Cow::setVariant);
+		addOptRegistryEntry(transformers, config, "cow.sound-variant", Cow.class, RegistryKey.COW_SOUND_VARIANT, Cow::setSoundVariant);
 
 		// ChestedHorse
 		chested = addBoolean(transformers, config, "chested", false, ChestedHorse.class, ChestedHorse::setCarryingChest, forceOptional);
@@ -346,15 +398,15 @@ public class EntityData {
 		// Falling Block
 		fallingBlockData = fallback(
 			key -> addOptBlockData(transformers, config, key, FallingBlock.class, FallingBlock::setBlockData),
-			"falling-block", "material"
+			"falling-block.block", "falling-block", "material"
 		);
 
-		addOptBoolean(transformers, config, "cancel-drop", FallingBlock.class, FallingBlock::setCancelDrop);
-		addOptBoolean(transformers, config, "hurt-entities", FallingBlock.class, FallingBlock::setHurtEntities);
+		addOptBoolean(transformers, config, "falling-block.cancel-drop", FallingBlock.class, FallingBlock::setCancelDrop);
+		addOptBoolean(transformers, config, "falling-block.hurt-entities", FallingBlock.class, FallingBlock::setHurtEntities);
 
-		addOptFloat(transformers, config, "damage-per-block", FallingBlock.class, FallingBlock::setDamagePerBlock);
+		addOptFloat(transformers, config, "falling-block.damage-per-block", FallingBlock.class, FallingBlock::setDamagePerBlock);
 
-		addOptInteger(transformers, config, "max-damage", FallingBlock.class, FallingBlock::setMaxDamage);
+		addOptInteger(transformers, config, "falling-block.max-damage", FallingBlock.class, FallingBlock::setMaxDamage);
 
 		// Fox
 		fallback(
@@ -368,53 +420,75 @@ public class EntityData {
 		// Frog
 		fallback(
 			key -> addOptRegistryEntry(transformers, config, key, Frog.class, RegistryKey.FROG_VARIANT, Frog::setVariant),
-			"frog-variant", "type"
+			"frog.variant", "frog-variant", "type"
 		);
 
 		// Goat
-		addOptBoolean(transformers, config, "left-horn", Goat.class, Goat::setLeftHorn);
-		addOptBoolean(transformers, config, "right-horn", Goat.class, Goat::setRightHorn);
-		addOptBoolean(transformers, config, "screaming", Goat.class, Goat::setScreaming);
+		addOptBoolean(transformers, config, "goat.has-left-horn", Goat.class, Goat::setLeftHorn);
+		addOptBoolean(transformers, config, "goat.has-right-horn", Goat.class, Goat::setRightHorn);
+		addOptBoolean(transformers, config, "goat.screaming", Goat.class, Goat::setScreaming);
 
 		// Hoglin
-		addOptBoolean(transformers, config, "immune-to-zombification", Hoglin.class, Hoglin::setImmuneToZombification);
-		addOptBoolean(transformers, config, "able-to-be-hunted", Hoglin.class, Hoglin::setIsAbleToBeHunted);
+		addOptBoolean(transformers, config, "hoglin.immune-to-zombification", Hoglin.class, Hoglin::setImmuneToZombification);
+		addOptBoolean(transformers, config, "hoglin.able-to-be-hunted", Hoglin.class, Hoglin::setIsAbleToBeHunted);
 
 		// Horse
 		horseColor = fallback(
 			key -> addOptEnum(transformers, config, key, Horse.class, Horse.Color.class, Horse::setColor),
-			"horse-color", "color"
+			"horse.color", "horse-color", "color"
 		);
 		horseStyle = fallback(
 			key -> addOptEnum(transformers, config, key, Horse.class, Horse.Style.class, Horse::setStyle),
-			"horse-style", "style"
+			"horse.style", "horse-style", "style"
 		);
 
 		// Item
 		dropItem = fallback(
 			key -> addOptItemStack(transformers, config, key, Item.class, Item::setItemStack),
-			"dropped-item", "material"
+			"item.dropped-item", "dropped-item", "material"
 		);
 
-		addOptInteger(transformers, config, "pickup-delay", Item.class, Item::setPickupDelay);
+		fallback(
+			key -> addOptInteger(transformers, config, key, Item.class, Item::setPickupDelay),
+			"item.pickup-delay", "pickup-delay"
+		);
 
-		addOptBoolean(transformers, config, "will-age", Item.class, Item::setWillAge);
-		addOptBoolean(transformers, config, "can-mob-pickup", Item.class, Item::setCanMobPickup);
-		addOptBoolean(transformers, config, "can-player-pickup", Item.class, Item::setCanPlayerPickup);
+		fallback(
+			key -> addOptBoolean(transformers, config, key, Item.class, Item::setWillAge),
+			"item.will-age", "will-age"
+		);
+		fallback(
+			key -> addOptBoolean(transformers, config, key, Item.class, Item::setCanMobPickup),
+			"item.can-mob-pickup", "can-mob-pickup"
+		);
+		fallback(
+			key -> addOptBoolean(transformers, config, key, Item.class, Item::setCanPlayerPickup),
+			"item.can-player-pickup", "can-player-pickup"
+		);
 
 		// Interaction
-		addOptFloat(transformers, config, "interaction-height", Interaction.class, Interaction::setInteractionHeight);
-		addOptFloat(transformers, config, "interaction-width", Interaction.class, Interaction::setInteractionWidth);
-		addOptBoolean(transformers, config, "responsive", Interaction.class, Interaction::setResponsive);
+		fallback(
+			key -> addOptFloat(transformers, config, key, Interaction.class, Interaction::setInteractionHeight),
+			"interaction.height", "interaction-height"
+		);
+		fallback(
+			key -> addOptFloat(transformers, config, key, Interaction.class, Interaction::setInteractionWidth),
+			"interaction.width", "interaction-width"
+		);
+
+		fallback(
+			key -> addOptBoolean(transformers, config, key, Interaction.class, Interaction::setResponsive),
+			"interaction.responsive", "responsive"
+		);
 
 		// Llama
 		llamaColor = fallback(
 			key -> addOptEnum(transformers, config, key, Llama.class, Llama.Color.class, Llama::setColor),
-			"llama-variant", "color"
+			"llama.variant", "llama-variant", "color"
 		);
 		fallback(
 			key -> addOptMaterial(transformers, config, key, Llama.class, (llama, material) -> llama.getInventory().setDecor(new ItemStack(material))),
-			"llama-decor", "material"
+			"llama.decor", "llama-decor", "material"
 		);
 
 		// Mannequin
@@ -460,13 +534,13 @@ public class EntityData {
 		transformers.put(Mannequin.class, new TransformerImpl<>(mannequinProfile, Mannequin::setProfile, true));
 
 		// Minecart
-		addOptDouble(transformers, config, "max-speed", Minecart.class, Minecart::setMaxSpeed);
+		addOptDouble(transformers, config, "minecart.max-speed", Minecart.class, Minecart::setMaxSpeed);
 
-		addOptBoolean(transformers, config, "slow-when-empty", Minecart.class, Minecart::setSlowWhenEmpty);
+		addOptBoolean(transformers, config, "minecart.slow-when-empty", Minecart.class, Minecart::setSlowWhenEmpty);
 
-		addOptInteger(transformers, config, "display-block-offset", Minecart.class, Minecart::setDisplayBlockOffset);
+		addOptInteger(transformers, config, "minecart.display-block-offset", Minecart.class, Minecart::setDisplayBlockOffset);
 
-		addOptBlockData(transformers, config, "display-block", Minecart.class, Minecart::setDisplayBlockData);
+		addOptBlockData(transformers, config, "minecart.display-block", Minecart.class, Minecart::setDisplayBlockData);
 
 		// Mushroom Cow
 		fallback(
@@ -475,8 +549,14 @@ public class EntityData {
 		);
 
 		// Panda
-		addOptEnum(transformers, config, "main-gene", Panda.class, Panda.Gene.class, Panda::setMainGene);
-		addOptEnum(transformers, config, "hidden-gene", Panda.class, Panda.Gene.class, Panda::setHiddenGene);
+		fallback(
+			key -> addOptEnum(transformers, config, key, Panda.class, Panda.Gene.class, Panda::setMainGene),
+			"panda.main-gene", "main-gene"
+		);
+		fallback(
+			key -> addOptEnum(transformers, config, key, Panda.class, Panda.Gene.class, Panda::setHiddenGene),
+			"panda.hidden-gene", "hidden-gene"
+		);
 
 		// Parrot
 		parrotVariant = fallback(
@@ -485,48 +565,79 @@ public class EntityData {
 		);
 
 		// Phantom
-		addInteger(transformers, config, "size", 0, Phantom.class, Phantom::setSize, forceOptional);
-		addOptBoolean(transformers, config, "should-burn-in-day", Phantom.class, Phantom::setShouldBurnInDay);
+		fallback(
+			key -> addInteger(transformers, config, key, 0, Phantom.class, Phantom::setSize, forceOptional),
+			"phantom.size", "size"
+		);
+
+		fallback(
+			key -> addOptBoolean(transformers, config, key, Phantom.class, Phantom::setShouldBurnInDay),
+			"phantom.should-burn-in-day", "should-burn-in-day"
+		);
+
+		// Pig
+		addOptRegistryEntry(transformers, config, "pig.variant", Pig.class, RegistryKey.PIG_VARIANT, Pig::setVariant);
+		addOptRegistryEntry(transformers, config, "pig.sound-variant", Pig.class, RegistryKey.PIG_SOUND_VARIANT, Pig::setSoundVariant);
 
 		// Piglin
-		addOptBoolean(transformers, config, "able-to-hunt", Piglin.class, Piglin::setIsAbleToHunt);
-		addOptInteger(transformers, config, "dancing", Piglin.class, Piglin::setDancing);
+		addOptBoolean(transformers, config, "piglin.can-hunt", Piglin.class, Piglin::setIsAbleToHunt);
+		addOptInteger(transformers, config, "piglin.dancing", Piglin.class, Piglin::setDancing);
 
 		// Piglin Abstract
-		addOptBoolean(transformers, config, "immune-to-zombification", PiglinAbstract.class, PiglinAbstract::setImmuneToZombification);
+		addOptBoolean(transformers, config, "piglin.immune-to-zombification", PiglinAbstract.class, PiglinAbstract::setImmuneToZombification);
 
 		// Puffer Fish
-		size = addInteger(transformers, config, "size", 0, PufferFish.class, PufferFish::setPuffState, forceOptional);
+		size = fallback(
+			key -> addInteger(transformers, config, key, 0, PufferFish.class, PufferFish::setPuffState, forceOptional),
+			"pufferfish.puff-state", "size"
+		);
 
 		// Rabbit
 		fallback(
 			key -> addOptEnum(transformers, config, key, Rabbit.class, Rabbit.Type.class, Rabbit::setRabbitType),
-			"rabbit-type", "type"
+			"rabbit.type", "rabbit-type", "type"
 		);
 
 		// Raider
-		addOptBoolean(transformers, config, "patrol-leader", Raider.class, Raider::setPatrolLeader);
-		addOptBoolean(transformers, config, "can-join-raid", Raider.class, Raider::setCanJoinRaid);
-		addOptBoolean(transformers, config, "celebrating", Raider.class, Raider::setCelebrating);
+		addOptBoolean(transformers, config, "raider.patrol-leader", Raider.class, Raider::setPatrolLeader);
+		addOptBoolean(transformers, config, "raider.can-join-raid", Raider.class, Raider::setCanJoinRaid);
+		addOptBoolean(transformers, config, "raider.celebrating", Raider.class, Raider::setCelebrating);
 
 		// Sheep
-		sheared = addBoolean(transformers, config, "sheared", false, Sheep.class, Sheep::setSheared, forceOptional);
+		sheared = fallback(
+			key -> addBoolean(transformers, config, key, false, Sheep.class, Sheep::setSheared, forceOptional),
+			"sheep.sheared", "sheared"
+		);
 		color = fallback(
 			key -> addOptEnum(transformers, config, key, Sheep.class, DyeColor.class, Sheep::setColor),
-			"sheep-color", "color"
+			"sheep.color", "sheep-color", "color"
 		);
 
 		// Shulker
+		addOptFloat(transformers, config, "shulker.peek", Shulker.class, (shulker, value) -> {
+			try {
+				shulker.setPeek(value);
+			} catch (IllegalArgumentException _) {} // debug
+		});
+
 		fallback(
 			key -> addOptEnum(transformers, config, key, Shulker.class, DyeColor.class, Shulker::setColor),
-			"shulker-color", "color"
+			"shulker.color", "shulker-color", "color"
 		);
+		addOptEnum(transformers, config, "shulker.attach-face", Shulker.class, BlockFace.class, (shulker, face) -> {
+			try {
+				shulker.setAttachedFace(face);
+			} catch (IllegalArgumentException _) {} // debug
+		});
 
-		// Skeleton
-		addOptBoolean(transformers, config, "should-burn-in-day", Skeleton.class, Skeleton::setShouldBurnInDay);
+		// Sittable
+		addOptBoolean(transformers, config, "sitting", Sittable.class, Sittable::setSitting);
 
 		// Slime
-		addInteger(transformers, config, "size", 0, Slime.class, Slime::setSize, forceOptional);
+		fallback(
+			key -> addInteger(transformers, config, key, 0, Slime.class, Slime::setSize, forceOptional),
+			"slime.size", "size"
+		);
 
 		// Steerable
 		addBoolean(transformers, config, "saddled", false, Steerable.class, Steerable::setSaddle, forceOptional);
@@ -546,28 +657,44 @@ public class EntityData {
 		);
 
 		// Salmon
-		addOptEnum(transformers, config, "salmon-variant", Salmon.class, Salmon.Variant.class, Salmon::setVariant);
+		addOptEnum(transformers, config, "salmon.variant", Salmon.class, Salmon.Variant.class, Salmon::setVariant);
 
 		// Villager
 		profession = fallback(
 			key -> addOptRegistryEntry(transformers, config, key, Villager.class, Registry.VILLAGER_PROFESSION, Villager::setProfession),
-			"villager-profession", "type"
+			"villager.profession", "villager-profession", "type"
 		);
-		addOptRegistryEntry(transformers, config, "villager-type", Villager.class, Registry.VILLAGER_TYPE, Villager::setVillagerType);
+		fallback(
+			key -> addOptRegistryEntry(transformers, config, key, Villager.class, Registry.VILLAGER_TYPE, Villager::setVillagerType),
+			"villager.type", "villager-type"
+		);
 
 		// Vindicator
-		addOptBoolean(transformers, config, "johnny", Vindicator.class, Vindicator::setJohnny);
+		addOptBoolean(transformers, config, "vindicator.johnny", Vindicator.class, Vindicator::setJohnny);
 
 		// Wolf
-		addBoolean(transformers, config, "angry", false, Wolf.class, Wolf::setAngry, forceOptional);
-		addOptRegistryEntry(transformers, config, "wolf-variant", Wolf.class, RegistryKey.WOLF_VARIANT, Wolf::setVariant);
+		fallback(
+			key -> addBoolean(transformers, config, key, false, Wolf.class, Wolf::setAngry, forceOptional),
+			"wolf.angry", "angry"
+		);
+
+		fallback(
+			key -> addOptRegistryEntry(transformers, config, key, Wolf.class, RegistryKey.WOLF_VARIANT, Wolf::setVariant),
+			"wolf.variant", "wolf-variant"
+		);
 
 		// Zombie
-		addOptBoolean(transformers, config, "should-burn-in-day", Zombie.class, Zombie::setShouldBurnInDay);
+		fallback(
+			key -> addOptBoolean(transformers, config, key, Zombie.class, Zombie::setShouldBurnInDay),
+			"zombie.should-burn-in-day", "should-burn-in-day"
+		);
+
+		// Zombie Nautilus
+		addOptRegistryEntry(transformers, config, "zombie-nautilus.variant", ZombieNautilus.class, RegistryKey.ZOMBIE_NAUTILUS_VARIANT, ZombieNautilus::setVariant);
 
 		// Zombie Villager
-		addOptRegistryEntry(transformers, config, "villager-profession", ZombieVillager.class, Registry.VILLAGER_PROFESSION, ZombieVillager::setVillagerProfession);
-		addOptRegistryEntry(transformers, config, "villager-type", ZombieVillager.class, Registry.VILLAGER_TYPE, ZombieVillager::setVillagerType);
+		addOptRegistryEntry(transformers, config, "zombie-villager.profession", ZombieVillager.class, Registry.VILLAGER_PROFESSION, ZombieVillager::setVillagerProfession);
+		addOptRegistryEntry(transformers, config, "zombie-villager.type", ZombieVillager.class, Registry.VILLAGER_TYPE, ZombieVillager::setVillagerType);
 
 		// Display
 		ConfigData<Quaternionf> leftRotation = getQuaternion(config, "transformation.left-rotation");
@@ -921,19 +1048,24 @@ public class EntityData {
 		return supplier;
 	}
 
-	private <T> void addEulerAngle(Multimap<Class<?>, Transformer<?>> transformers, ConfigurationSection config, String name, EulerAngle def, Class<T> type, BiConsumer<T, EulerAngle> setter, boolean forceOptional) {
+	private <T> ConfigData<EulerAngle> addEulerAngle(Multimap<Class<?>, Transformer<?>> transformers, ConfigurationSection config, String name, EulerAngle def, Class<T> type, BiConsumer<T, EulerAngle> setter, boolean forceOptional) {
+		ConfigData<EulerAngle> supplier;
+
 		if (forceOptional) {
-			ConfigData<EulerAngle> supplier = ConfigDataUtil.getEulerAngle(config, name, null);
+			supplier = ConfigDataUtil.getEulerAngle(config, name, null);
 			transformers.put(type, new TransformerImpl<>(supplier, setter, true));
 		} else {
-			ConfigData<EulerAngle> supplier = ConfigDataUtil.getEulerAngle(config, name, def);
+			supplier = ConfigDataUtil.getEulerAngle(config, name, def);
 			transformers.put(type, new TransformerImpl<>(supplier, setter));
 		}
+
+		return supplier;
 	}
 
-	private <T> void addOptBoolean(Multimap<Class<?>, Transformer<?>> transformers, ConfigurationSection config, String name, Class<T> type, BiConsumer<T, Boolean> setter) {
+	private <T> ConfigData<Boolean> addOptBoolean(Multimap<Class<?>, Transformer<?>> transformers, ConfigurationSection config, String name, Class<T> type, BiConsumer<T, Boolean> setter) {
 		ConfigData<Boolean> supplier = ConfigDataUtil.getBoolean(config, name);
 		transformers.put(type, new TransformerImpl<>(supplier, setter, true));
+		return supplier;
 	}
 
 	private <T> void addOptByte(Multimap<Class<?>, Transformer<?>> transformers, ConfigurationSection config, String name, Class<T> type, BiConsumer<T, Byte> setter) {
@@ -941,9 +1073,10 @@ public class EntityData {
 		transformers.put(type, new TransformerImpl<>(supplier, setter, true));
 	}
 
-	private <T> void addOptInteger(Multimap<Class<?>, Transformer<?>> transformers, ConfigurationSection config, String name, Class<T> type, BiConsumer<T, Integer> setter) {
+	private <T> ConfigData<Integer> addOptInteger(Multimap<Class<?>, Transformer<?>> transformers, ConfigurationSection config, String name, Class<T> type, BiConsumer<T, Integer> setter) {
 		ConfigData<Integer> supplier = ConfigDataUtil.getInteger(config, name);
 		transformers.put(type, new TransformerImpl<>(supplier, setter, true));
+		return supplier;
 	}
 
 	private <T> void addOptLong(Multimap<Class<?>, Transformer<?>> transformers, ConfigurationSection config, String name, Class<T> type, BiConsumer<T, Long> setter) {
@@ -951,9 +1084,10 @@ public class EntityData {
 		transformers.put(type, new TransformerImpl<>(supplier, setter, true));
 	}
 
-	private <T> void addOptFloat(Multimap<Class<?>, Transformer<?>> transformers, ConfigurationSection config, String name, Class<T> type, BiConsumer<T, Float> setter) {
+	private <T> ConfigData<Float> addOptFloat(Multimap<Class<?>, Transformer<?>> transformers, ConfigurationSection config, String name, Class<T> type, BiConsumer<T, Float> setter) {
 		ConfigData<Float> supplier = ConfigDataUtil.getFloat(config, name);
 		transformers.put(type, new TransformerImpl<>(supplier, setter, true));
+		return supplier;
 	}
 
 	private <T> void addOptDouble(Multimap<Class<?>, Transformer<?>> transformers, ConfigurationSection config, String name, Class<T> type, BiConsumer<T, Double> setter) {
