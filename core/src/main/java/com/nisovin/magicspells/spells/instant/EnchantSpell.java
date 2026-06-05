@@ -21,11 +21,13 @@ public class EnchantSpell extends InstantSpell {
 	private final Map<Enchantment, Integer> enchantments = new HashMap<>();
 
 	private final ConfigData<Boolean> safeEnchants;
+	private final ConfigData<Boolean> requireSupportedItem;
 
 	public EnchantSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
 
 		safeEnchants = getConfigDataBoolean("safe-enchants", true);
+		requireSupportedItem = getConfigDataBoolean("require-supported-item", true);
 
 		List<String> enchantList = getConfigStringList("enchantments", List.of());
 		if (enchantList.isEmpty()) {
@@ -64,22 +66,23 @@ public class EnchantSpell extends InstantSpell {
 		if (item.isEmpty()) return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 
 		boolean safeEnchants = this.safeEnchants.get(data);
+		boolean requireSupportedItem = this.requireSupportedItem.get(data);
+
 		for (Enchantment e : enchantments.keySet())
-			enchant(item, safeEnchants, e, enchantments.get(e));
+			enchant(item, safeEnchants, requireSupportedItem, e, enchantments.get(e));
 
 		playSpellEffects(data);
 
 		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 	}
 
-	private void enchant(ItemStack item, boolean safeEnchants, Enchantment enchant, int level) {
+	private void enchant(ItemStack item, boolean safeEnchants, boolean requireSupportedItem, Enchantment enchant, int level) {
 		if (level <= 0) {
 			item.removeEnchantment(enchant);
 			return;
 		}
 
-		if (!enchant.canEnchantItem(item)) return;
-
+		if (requireSupportedItem && !enchant.canEnchantItem(item)) return;
 		if (safeEnchants) level = Math.clamp(level, enchant.getStartLevel(), enchant.getMaxLevel());
 
 		item.addUnsafeEnchantment(enchant, level);
