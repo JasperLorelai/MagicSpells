@@ -91,6 +91,14 @@ public class SpellTargetEvent extends SpellEvent implements Cancellable {
 		return spellData;
 	}
 
+	/**
+	 * Sets the spell's {@link SpellData} to the provided value.
+	 * @param data the new data
+	 */
+	public void setSpellData(SpellData data) {
+		spellData = data;
+	}
+
 	@Override
 	public boolean isCancelled() {
 		return cancelled;
