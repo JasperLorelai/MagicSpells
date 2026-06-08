@@ -415,9 +415,8 @@ public class ParticleProjectileTracker implements Runnable, Tracker {
 		if (stopped) return;
 
 		if (spell == null || interactions == null || interactions.isEmpty()) return;
-		Set<ParticleProjectileTracker> toRemove = new HashSet<>();
-		Set<ParticleProjectileTracker> trackers = new HashSet<>(ParticleProjectileSpell.getProjectileTrackers());
-		for (ParticleProjectileTracker collisionTracker : trackers) {
+
+		for (ParticleProjectileTracker collisionTracker : new HashSet<>(ParticleProjectileSpell.getProjectileTrackers())) {
 			boolean isCaster = Objects.equals(data.caster(), collisionTracker.data.caster());
 
 			for (Interaction interaction : interactions) {
@@ -433,21 +432,10 @@ public class ParticleProjectileTracker implements Runnable, Tracker {
 					interaction.collisionSpell().subcast(data.location(middleLoc));
 				}
 
-				if (interaction.stopCausing()) {
-					toRemove.add(collisionTracker);
-					collisionTracker.stop(false);
-				}
-
-				if (interaction.stopWith()) {
-					toRemove.add(this);
-					stop(false);
-				}
+				if (interaction.stopCausing()) collisionTracker.stop();
+				if (interaction.stopWith()) stop();
 			}
 		}
-
-		ParticleProjectileSpell.getProjectileTrackers().removeAll(toRemove);
-		toRemove.clear();
-		trackers.clear();
 	}
 
 	private boolean canInteractWith(ParticleProjectileTracker collisionTracker) {
