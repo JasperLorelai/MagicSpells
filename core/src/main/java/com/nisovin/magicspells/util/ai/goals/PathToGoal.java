@@ -5,6 +5,7 @@ import java.util.EnumSet;
 import org.bukkit.Location;
 import org.bukkit.entity.Mob;
 import org.bukkit.util.Vector;
+import org.bukkit.util.NumberConversions;
 import org.bukkit.configuration.ConfigurationSection;
 
 import org.jetbrains.annotations.NotNull;
@@ -36,7 +37,7 @@ public class PathToGoal extends CustomGoal {
 	public boolean initialize(@Nullable ConfigurationSection config) {
 		if (config == null) return false;
 		speed = ConfigDataUtil.getDouble(config, "speed", 1);
-		position = ConfigDataUtil.getVector(config, "position", new Vector());
+		position = ConfigDataUtil.getVector(config, "position", null);
 		distanceAllowed = ConfigDataUtil.getDouble(config, "distance-allowed", 1);
 		return true;
 	}
@@ -44,8 +45,7 @@ public class PathToGoal extends CustomGoal {
 	private void setLocation() {
 		Vector position = PathToGoal.this.position.get(data);
 		if (position == null) return;
-
-		location = new Location(mob.getWorld(), position.getX(), position.getY(), position.getZ());
+		location = position.toLocation(mob.getWorld());
 	}
 
 	@Override
@@ -54,7 +54,7 @@ public class PathToGoal extends CustomGoal {
 		return location != null &&
 				location.isChunkLoaded() &&
 				location.getWorld().equals(mob.getWorld()) &&
-				mob.getLocation().distanceSquared(location) > distanceAllowed.get(data);
+				mob.getLocation().distanceSquared(location) > NumberConversions.square(distanceAllowed.get(data));
 	}
 
 	@Override
