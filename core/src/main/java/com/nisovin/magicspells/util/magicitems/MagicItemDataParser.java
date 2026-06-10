@@ -126,6 +126,11 @@ public class MagicItemDataParser {
 						case "custom_model_data":
 							data.setAttribute(CUSTOM_MODEL_DATA, value.getAsInt());
 							break;
+						case "itemmodel":
+						case "item-model":
+						case "item_model":
+							data.setAttribute(ITEM_MODEL, value.getAsString());
+							break;
 						case "power":
 							data.setAttribute(POWER, value.getAsInt());
 							break;
