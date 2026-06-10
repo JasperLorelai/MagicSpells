@@ -129,7 +129,16 @@ public class MagicItemDataParser {
 						case "itemmodel":
 						case "item-model":
 						case "item_model":
-							data.setAttribute(ITEM_MODEL, value.getAsString());
+							String itemModelString = value.getAsString();
+
+							try {
+								NamespacedKey itemKey = NamespacedKey.fromString(itemModelString);
+								data.setAttribute(ITEM_MODEL, itemKey);
+							} catch (IllegalArgumentException e) {
+								MagicSpells.error("Invalid item model key '" + itemModelString + "'.");
+								continue;
+							}
+
 							break;
 						case "power":
 							data.setAttribute(POWER, value.getAsInt());

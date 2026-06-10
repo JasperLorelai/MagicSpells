@@ -22,7 +22,7 @@ public class ItemModelHandler {
     }
 
     public static void processItemMeta(ItemMeta meta, MagicItemData data) {
-        if (data.hasAttribute(ITEM_MODEL)) meta.setItemModel(NamespacedKey.fromString((String) data.getAttribute(ITEM_MODEL)));
+        if (data.hasAttribute(ITEM_MODEL)) meta.setItemModel((NamespacedKey) data.getAttribute(ITEM_MODEL));
     }
 
     public static void processMagicItemData(ItemMeta meta, MagicItemData data) {

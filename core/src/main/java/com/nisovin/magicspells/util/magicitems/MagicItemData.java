@@ -15,6 +15,7 @@ import com.google.common.collect.Iterables;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+
 import net.kyori.adventure.text.Component;
 
 import org.bukkit.*;
@@ -231,7 +232,7 @@ public class MagicItemData {
 		DURABILITY(Integer.class),
 		REPAIR_COST(Integer.class),
 		CUSTOM_MODEL_DATA(Integer.class),
-		ITEM_MODEL(String.class),
+		ITEM_MODEL(NamespacedKey.class),
 		POWER(Integer.class),
 		UNBREAKABLE(Boolean.class),
 		HIDE_TOOLTIP(Boolean.class),
@@ -293,7 +294,7 @@ public class MagicItemData {
 			magicItem.addProperty("custom-model-data", (int) getAttribute(MagicItemAttribute.CUSTOM_MODEL_DATA));
 
 		if (hasAttribute(MagicItemAttribute.ITEM_MODEL))
-			magicItem.addProperty("item-model", (String) getAttribute(MagicItemAttribute.ITEM_MODEL));
+			magicItem.addProperty("item-model", ((NamespacedKey) getAttribute(MagicItemAttribute.ITEM_MODEL)).asString());
 
 		if (hasAttribute(MagicItemAttribute.POWER))
 			magicItem.addProperty("power", (int) getAttribute(MagicItemAttribute.POWER));
