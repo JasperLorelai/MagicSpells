@@ -16,9 +16,10 @@ public class ItemModelHandler {
         if (!config.isString(CONFIG_NAME)) return;
 
         String itemModel = config.getString(CONFIG_NAME);
+        NamespacedKey itemModelKey = NamespacedKey.fromString(itemModel);
 
-        meta.setItemModel(NamespacedKey.fromString(CONFIG_NAME));
-        data.setAttribute(ITEM_MODEL, itemModel);
+        meta.setItemModel(itemModelKey);
+        data.setAttribute(ITEM_MODEL, itemModelKey);
     }
 
     public static void processItemMeta(ItemMeta meta, MagicItemData data) {
