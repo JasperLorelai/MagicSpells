@@ -55,9 +55,7 @@ import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.ai.CustomGoal;
 import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.util.config.FunctionData;
-import com.nisovin.magicspells.util.magicitems.MagicItem;
 import com.nisovin.magicspells.util.config.ConfigDataUtil;
-import com.nisovin.magicspells.util.magicitems.MagicItems;
 import com.nisovin.magicspells.util.itemreader.AttributeHandler;
 
 public class EntityData {
@@ -1015,31 +1013,10 @@ public class EntityData {
 	}
 
 	private <T> ConfigData<ItemStack> addOptItemStack(Multimap<Class<?>, Transformer<?>> transformers, ConfigurationSection config, String name, Class<T> type, BiConsumer<T, ItemStack> setter) {
-		ConfigData<String> supplier = ConfigDataUtil.getString(config, name, null);
-		if (supplier.isConstant()) {
-			ItemStack item = getItemStack(supplier.get());
-			if (item == null) return data -> null;
+		ConfigData<ItemStack> supplier = ConfigDataUtil.getItemStack(config, name, null);
+		transformers.put(type, new TransformerImpl<>(supplier, setter, true));
 
-			transformers.put(type, new TransformerImpl<>(data -> item, setter, true));
-			return data -> item;
-		}
-
-		ConfigData<ItemStack> itemSupplier = data -> getItemStack(supplier.get(data));
-		transformers.put(type, new TransformerImpl<>(itemSupplier, setter, true));
-
-		return itemSupplier;
-	}
-
-	private ItemStack getItemStack(String string) {
-		if (string == null) return null;
-
-		try {
-			return Bukkit.getItemFactory().createItemStack(string);
-		} catch (IllegalArgumentException ignored) {
-		}
-
-		MagicItem magicItem = MagicItems.getMagicItemFromString(string);
-		return magicItem == null ? null : magicItem.getItemStack();
+		return supplier;
 	}
 
 	private void addOptEquipment(Multimap<Class<?>, Transformer<?>> transformers, ConfigurationSection config, String name, EquipmentSlot slot) {

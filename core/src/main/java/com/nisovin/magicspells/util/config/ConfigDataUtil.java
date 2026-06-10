@@ -14,6 +14,7 @@ import org.bukkit.*;
 import org.bukkit.util.Vector;
 import org.bukkit.util.EulerAngle;
 import org.bukkit.entity.EntityType;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.Particle.DustOptions;
 import org.bukkit.Particle.DustTransition;
@@ -21,6 +22,8 @@ import org.bukkit.potion.PotionEffectType;
 import org.bukkit.configuration.ConfigurationSection;
 
 import com.nisovin.magicspells.util.*;
+import com.nisovin.magicspells.util.magicitems.MagicItem;
+import com.nisovin.magicspells.util.magicitems.MagicItems;
 import com.nisovin.magicspells.handlers.PotionEffectHandler;
 
 public class ConfigDataUtil {
@@ -809,17 +812,52 @@ public class ConfigDataUtil {
 	public static ConfigData<UUID> getUniqueID(@NotNull ConfigurationSection config, @NotNull String path, @Nullable UUID def) {
 		ConfigData<String> supplier = getString(config, path, null);
 
-		return (VariableConfigData<UUID>) data -> {
-			String uuid = supplier.get(data);
-			if (uuid == null) return def;
+		if (supplier.isConstant()) {
+			String string = supplier.get();
+			if (string == null) return _ -> def;
 
 			try {
-				return UUID.fromString(uuid);
+				UUID uuid = UUID.fromString(string);
+				return _ -> uuid;
+			}
+			catch (IllegalArgumentException e) {
+				return _ -> def;
+			}
+		}
+
+		return (VariableConfigData<UUID>) data -> {
+			String string = supplier.get(data);
+			if (string == null) return def;
+
+			try {
+				return UUID.fromString(string);
 			}
 			catch (IllegalArgumentException e) {
 				return def;
 			}
 		};
+	}
+
+	public static ConfigData<ItemStack> getItemStack(@NotNull ConfigurationSection config, @NotNull String path, @Nullable ItemStack def) {
+		ConfigData<String> supplier = getString(config, path, null);
+
+		if (supplier.isConstant()) {
+			ItemStack item = parseItemString(supplier.get(), def);
+			return _ -> item;
+		}
+
+		return (VariableConfigData<ItemStack>) data -> parseItemString(supplier.get(data), def);
+	}
+
+	private static ItemStack parseItemString(@Nullable String string, @Nullable ItemStack def) {
+		if (string == null) return def;
+
+		try {
+			return Bukkit.getItemFactory().createItemStack(string);
+		} catch (IllegalArgumentException _) {}
+
+		MagicItem magicItem = MagicItems.getMagicItemFromString(string);
+		return magicItem == null ? def : magicItem.getItemStack();
 	}
 
 	public static ConfigData<Angle> getAngle(@NotNull ConfigurationSection config, @NotNull String path, @Nullable Angle def) {
