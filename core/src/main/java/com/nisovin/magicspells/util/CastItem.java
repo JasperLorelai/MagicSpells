@@ -10,6 +10,7 @@ import com.google.gson.JsonObject;
 
 import org.bukkit.Color;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.potion.PotionType;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -26,6 +27,7 @@ import com.nisovin.magicspells.util.itemreader.PotionHandler;
 import com.nisovin.magicspells.util.itemreader.DurabilityHandler;
 import com.nisovin.magicspells.util.itemreader.WrittenBookHandler;
 import com.nisovin.magicspells.util.itemreader.LeatherArmorHandler;
+
 import static com.nisovin.magicspells.util.magicitems.MagicItemData.MagicItemAttribute.*;
 
 public class CastItem {
@@ -37,6 +39,8 @@ public class CastItem {
 	private int durability = -1;
 	private int customModelData = 0;
 	private boolean unbreakable = false;
+
+	private NamespacedKey itemModel = null;
 
 	private Color color = null;
 	private PotionType potionType = null;
@@ -65,6 +69,7 @@ public class CastItem {
 			if (!MagicSpells.ignoreCastItemAmount()) amount = item.getAmount();
 			if (!MagicSpells.ignoreCastItemDurability(type) && type.getMaxDurability() > 0) durability = DurabilityHandler.getDurability(meta);
 			if (!MagicSpells.ignoreCastItemCustomModelData()) customModelData = ItemUtil.getCustomModelData(meta);
+			if (!MagicSpells.ignoreCastItemItemModel()) itemModel = meta.getItemModel();
 			if (!MagicSpells.ignoreCastItemBreakability()) unbreakable = meta.isUnbreakable();
 			if (!MagicSpells.ignoreCastItemColor()) color = LeatherArmorHandler.getColor(meta);
 			if (!MagicSpells.ignoreCastItemPotionType()) potionType = PotionHandler.getPotionType(meta);
@@ -98,6 +103,9 @@ public class CastItem {
 
 				if (!MagicSpells.ignoreCastItemCustomModelData() && data.hasAttribute(CUSTOM_MODEL_DATA))
 					customModelData = (int) data.getAttribute(CUSTOM_MODEL_DATA);
+
+				if (!MagicSpells.ignoreCastItemItemModel() && data.hasAttribute(ITEM_MODEL))
+					itemModel = (NamespacedKey) data.getAttribute(ITEM_MODEL);
 
 				if (!MagicSpells.ignoreCastItemBreakability() && data.hasAttribute(UNBREAKABLE))
 					unbreakable = (boolean) data.getAttribute(UNBREAKABLE);
@@ -148,6 +156,7 @@ public class CastItem {
 			&& (MagicSpells.ignoreCastItemAmount() || amount == i.amount)
 			&& (MagicSpells.ignoreCastItemNames() || Objects.equals(name, i.name))
 			&& (MagicSpells.ignoreCastItemCustomModelData() || customModelData == i.customModelData)
+			&& (MagicSpells.ignoreCastItemItemModel() || itemModel == i.itemModel)
 			&& (MagicSpells.ignoreCastItemBreakability() || unbreakable == i.unbreakable)
 			&& (MagicSpells.ignoreCastItemColor() || Objects.equals(color, i.color))
 			&& (MagicSpells.ignoreCastItemPotionType() || Objects.equals(potionType, i.potionType))
@@ -159,7 +168,7 @@ public class CastItem {
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(type, name, amount, durability, customModelData, unbreakable, color, potionType, title, author, enchants, lore);
+		return Objects.hash(type, name, amount, durability, customModelData, itemModel, unbreakable, color, potionType, title, author, enchants, lore);
 	}
 
 	@Override
@@ -179,6 +188,9 @@ public class CastItem {
 
 		if (!MagicSpells.ignoreCastItemCustomModelData())
 			castItem.addProperty("custommodeldata", customModelData);
+
+		if (!MagicSpells.ignoreCastItemItemModel() && itemModel != null)
+			castItem.addProperty("itemmodel", itemModel.asString());
 
 		if (!MagicSpells.ignoreCastItemBreakability())
 			castItem.addProperty("unbreakable", unbreakable);
