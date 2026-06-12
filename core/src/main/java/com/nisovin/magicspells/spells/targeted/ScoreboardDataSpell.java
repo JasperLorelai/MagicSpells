@@ -11,13 +11,11 @@ import com.nisovin.magicspells.variables.Variable;
 import com.nisovin.magicspells.spells.TargetedSpell;
 import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.spells.TargetedEntitySpell;
-import com.nisovin.magicspells.variables.variabletypes.GlobalStringVariable;
-import com.nisovin.magicspells.variables.variabletypes.PlayerStringVariable;
 
 public class ScoreboardDataSpell extends TargetedSpell implements TargetedEntitySpell {
 
-	private ConfigData<String> variableName;
-	private ConfigData<String> objectiveName;
+	private final ConfigData<String> variableName;
+	private final ConfigData<String> objectiveName;
 
 	public ScoreboardDataSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
@@ -51,10 +49,7 @@ public class ScoreboardDataSpell extends TargetedSpell implements TargetedEntity
 		if (objective == null) return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 
 		int score = objective.getScoreFor(data.target()).getScore();
-
-		if (variable instanceof GlobalStringVariable || variable instanceof PlayerStringVariable)
-			variable.parseAndSet(caster, String.valueOf(score));
-		else variable.set(caster, score);
+		MagicSpells.getVariableManager().set(variable, caster, String.valueOf(score));
 
 		playSpellEffects(data);
 		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);

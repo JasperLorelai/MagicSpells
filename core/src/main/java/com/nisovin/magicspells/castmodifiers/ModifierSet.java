@@ -54,7 +54,7 @@ public class ModifierSet {
 
 				if (isFromManaSystem) MagicSpells.error("Mana system has a problem with modifier '" + s + "'" + extra);
 				else if (spell != null) MagicSpells.error("Spell '" + spell.getInternalName() + "' has a problem with modifier '" + s + "'" + extra);
-				else MagicSpells.error("Problem with modifier: " + s + "'" + extra);
+				else MagicSpells.error("Problem with modifier: '" + s + "'" + extra);
 				continue;
 			}
 

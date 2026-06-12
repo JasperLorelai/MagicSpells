@@ -326,6 +326,10 @@ public class VariableManager {
 		set(var, player, amount);
 	}
 
+	public void set(Variable variable, Player player, double amount) {
+		set(variable, player.getName(), amount);
+	}
+
 	public void set(Variable variable, String player, double amount) {
 		if (variable == null) return;
 		variable.set(player, amount);
@@ -344,6 +348,10 @@ public class VariableManager {
 	public void set(String variable, String player, String amount) {
 		Variable var = variables.get(variable);
 		set(var, player, amount);
+	}
+
+	public void set(Variable variable, Player player, String amount) {
+		set(variable, player.getName(), amount);
 	}
 
 	public void set(Variable variable, String player, String amount) {
