@@ -854,7 +854,7 @@ public enum ModifierType {
 			if (!(spellData.caster() instanceof Player caster)) return;
 
 			String value = MagicSpells.doReplacements(data.value, spellData);
-			MagicSpells.getVariableManager().set(data.variable, caster.getName(), value);
+			MagicSpells.getVariableManager().set(data.variable, caster, value);
 		}
 
 		@Override

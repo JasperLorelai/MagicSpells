@@ -41,7 +41,7 @@ public class ProtocolLibListener implements MessageListener {
 
 		String variable = recordedData.listenerData.storeChatOutput();
 		String message = recordedData.recorded.toString();
-		MagicSpells.getVariableManager().set(variable, player.getName(), message);
+		MagicSpells.getVariableManager().set(variable, player, message);
 	}
 
 	@Override
