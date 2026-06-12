@@ -18,6 +18,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.util.NumberConversions;
 import org.bukkit.event.entity.ExplosionPrimeEvent;
 
 import org.bukkit.craftbukkit.CraftWorld;
@@ -29,7 +30,9 @@ import org.bukkit.craftbukkit.inventory.CraftItemStack;
 import org.bukkit.craftbukkit.entity.CraftLivingEntity;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
 
 import io.papermc.paper.adventure.PaperAdventure;
@@ -42,8 +45,11 @@ import com.nisovin.magicspells.util.glow.GlowManager;
 import com.nisovin.magicspells.volatilecode.VolatileCodeHandle;
 import com.nisovin.magicspells.volatilecode.VolatileCodeHelper;
 
+import net.minecraft.nbt.Tag;
 import net.minecraft.util.ARGB;
 import net.minecraft.core.BlockPos;
+import net.minecraft.nbt.StringTag;
+import net.minecraft.nbt.NumericTag;
 import net.minecraft.advancements.*;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.resources.Identifier;
@@ -289,6 +295,28 @@ public class VolatileCodeLatest extends VolatileCodeHandle {
 		}
 
 		return count;
+	}
+
+	@Override
+	public @Nullable String getCommandStorageString(Key containerId, String tagKey) {
+		Tag tag = getCommandStorage(PaperAdventure.asVanilla(containerId), tagKey);
+		return tag == null ? null : tag.toString();
+	}
+
+	@Override
+	public @Nullable Double getCommandStorageDouble(Key containerId, String tagKey) throws UnsupportedOperationException {
+		return switch (getCommandStorage(PaperAdventure.asVanilla(containerId), tagKey)) {
+			case null -> null;
+			case StringTag stringTag -> NumberConversions.toDouble(stringTag.value());
+			case NumericTag numericTag -> numericTag.doubleValue();
+			default -> throw new UnsupportedOperationException("Not supported yet.");
+		};
+	}
+
+	@Nullable
+	private Tag getCommandStorage(Identifier containerId, String tagKey) {
+		MinecraftServer server = ((CraftServer) Bukkit.getServer()).getServer();
+		return server.getCommandStorage().get(containerId).get(tagKey);
 	}
 
 }

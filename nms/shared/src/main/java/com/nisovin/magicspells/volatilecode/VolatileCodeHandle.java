@@ -6,11 +6,14 @@ import org.bukkit.Location;
 import org.bukkit.util.Vector;
 import org.bukkit.inventory.ItemStack;
 
+import org.jetbrains.annotations.Nullable;
+
+import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
 
-import io.papermc.paper.advancement.AdvancementDisplay.Frame;
-
 import com.nisovin.magicspells.util.glow.GlowManager;
+
+import io.papermc.paper.advancement.AdvancementDisplay.Frame;
 
 public abstract class VolatileCodeHandle {
 
@@ -43,5 +46,18 @@ public abstract class VolatileCodeHandle {
 	public abstract long countGlobalRegionSchedulerTasks();
 
 	public abstract long countEntitySchedulerTasks();
+
+	/**
+	 * @param containerId Make sure to pass a valid key.
+	 */
+	@Nullable
+	public abstract String getCommandStorageString(Key containerId, String tagKey);
+
+	/**
+	 * @param containerId Make sure to pass a valid key.
+	 * @throws UnsupportedOperationException When Tag could not be converted to {@link Double}.
+	 */
+	@Nullable
+	public abstract Double getCommandStorageDouble(Key containerId, String tagKey) throws UnsupportedOperationException;
 
 }
