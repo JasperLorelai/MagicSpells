@@ -58,7 +58,9 @@ public abstract class Variable {
 	public abstract void set(String player, double amount);
 
 	public void parseAndSet(String player, String textValue) {
-		set(player, Double.parseDouble(textValue));
+		try {
+			set(player, Double.parseDouble(textValue));
+		} catch (NumberFormatException _) {}
 	}
 
 	public double getValue(Player player) {
