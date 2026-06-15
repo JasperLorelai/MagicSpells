@@ -20,6 +20,7 @@ import org.bukkit.Particle.DustTransition;
 import org.bukkit.configuration.ConfigurationSection;
 
 import com.nisovin.magicspells.util.Name;
+import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.spelleffects.SpellEffect;
@@ -32,41 +33,46 @@ public class ParticlesEffect extends SpellEffect {
 
 	protected ConfigData<Particle> particle;
 
-	protected ConfigData<Color> rgbColor;
+	private ConfigData<Color> rgbColor;
 	protected ConfigData<Color> argbColor;
 
-	protected ConfigData<Material> material;
-	protected ConfigData<BlockData> blockData;
-	protected ConfigData<DustOptions> dustOptions;
-	protected ConfigData<Particle.Spell> spellOptions;
-	protected ConfigData<DustTransition> dustTransition;
+	private ConfigData<Material> material;
+	private ConfigData<BlockData> blockData;
+	private ConfigData<DustOptions> dustOptions;
+	private ConfigData<Particle.Spell> spellOptions;
+	private ConfigData<DustTransition> dustTransition;
 
-	protected ConfigData<Vector> vibrationOffset;
-	protected ConfigData<Vector> vibrationRelativeOffset;
-	protected ConfigData<ParticlePosition> vibrationOrigin;
-	protected ConfigData<ParticlePosition> vibrationDestination;
+	private ConfigData<Vector> vibrationOffset;
+	private ConfigData<Vector> vibrationRelativeOffset;
+	private ConfigData<ParticlePosition> vibrationOrigin;
+	private ConfigData<ParticlePosition> vibrationDestination;
 
-	protected ConfigData<Color> trailColor;
-	protected ConfigData<Integer> trailDuration;
-	protected ConfigData<Vector> trailTargetOffset;
-	protected ConfigData<ParticlePosition> trailOrigin;
-	protected ConfigData<ParticlePosition> trailTarget;
-	protected ConfigData<Vector> trailTargetRelativeOffset;
+	private ConfigData<Color> trailColor;
+	private ConfigData<Integer> trailDuration;
+	private ConfigData<Vector> trailTargetOffset;
+	private ConfigData<ParticlePosition> trailOrigin;
+	private ConfigData<ParticlePosition> trailTarget;
+	private ConfigData<Vector> trailTargetRelativeOffset;
+
+	private ConfigData<Integer> geyserWaterBlocks;
+	private ConfigData<Float> geyserBurstImpulse;
 
 	protected ConfigData<Integer> count;
-	protected ConfigData<Integer> radius;
-	protected ConfigData<Integer> arrivalTime;
-	protected ConfigData<Integer> shriekDelay;
+	private ConfigData<Integer> radius;
+	private ConfigData<Integer> arrivalTime;
+	private ConfigData<Integer> shriekDelay;
 
 	protected ConfigData<Float> speed;
+
 	protected ConfigData<Float> xSpread;
 	protected ConfigData<Float> ySpread;
 	protected ConfigData<Float> zSpread;
-	protected ConfigData<Float> dragonBreathPower;
-	protected ConfigData<Float> sculkChargeRotation;
+
+	private ConfigData<Float> dragonBreathPower;
+	private ConfigData<Float> sculkChargeRotation;
 
 	protected ConfigData<Boolean> force;
-	protected ConfigData<Boolean> staticDestination;
+	private ConfigData<Boolean> staticDestination;
 
 	@Override
 	public void loadFromConfig(ConfigurationSection config) {
@@ -92,6 +98,9 @@ public class ParticlesEffect extends SpellEffect {
 		trailDuration = ConfigDataUtil.getInteger(config, "trail.duration");
 		trailTargetOffset = ConfigDataUtil.getVector(config, "trail.target-offset", new Vector());
 		trailTargetRelativeOffset = ConfigDataUtil.getVector(config, "trail.target-relative-offset", new Vector());
+
+		geyserWaterBlocks = ConfigDataUtil.getInteger(config, "geyser.water-blocks");
+		geyserBurstImpulse = ConfigDataUtil.getFloat(config, "geyser.burst-impulse");
 
 		count = ConfigDataUtil.getInteger(config, "count", 5);
 		radius = ConfigDataUtil.getInteger(config, "radius", 50);
@@ -156,6 +165,13 @@ public class ParticlesEffect extends SpellEffect {
 	}
 
 	protected Object getParticleData(@NotNull Particle particle, @Nullable Entity entity, @NotNull Location location, @NotNull SpellData data) {
+		Object nmsData = MagicSpells.getVolatileCodeHandler().getVolatileParticleData(
+			particle,
+			() -> geyserWaterBlocks.get(data),
+			() -> geyserBurstImpulse.get(data)
+		);
+		if (nmsData != null) return nmsData;
+
 		Class<?> type = particle.getDataType();
 
 		if (type == Color.class) {

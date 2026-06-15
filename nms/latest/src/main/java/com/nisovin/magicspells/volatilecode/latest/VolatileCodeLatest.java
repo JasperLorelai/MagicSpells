@@ -4,6 +4,7 @@ import java.util.*;
 import java.lang.invoke.VarHandle;
 import java.util.function.Consumer;
 import java.lang.invoke.MethodType;
+import java.util.function.Supplier;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 
@@ -11,6 +12,7 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 
 import org.bukkit.World;
 import org.bukkit.Bukkit;
+import org.bukkit.Particle;
 import org.bukkit.Location;
 import org.bukkit.util.Vector;
 import org.bukkit.entity.Entity;
@@ -29,6 +31,7 @@ import org.bukkit.craftbukkit.inventory.CraftItemStack;
 import org.bukkit.craftbukkit.entity.CraftLivingEntity;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import net.kyori.adventure.text.Component;
 
@@ -290,6 +293,32 @@ public class VolatileCodeLatest extends VolatileCodeHandle {
 		}
 
 		return count;
+	}
+
+	@Override
+	public @Nullable Object getVolatileParticleData(
+		Particle particle,
+		Supplier<Integer> geyserWaterBlocks,
+		Supplier<Float> geyserBurstImpulse
+	) {
+		Class<?> type = particle.getDataType();
+
+		if (type == Particle.Geyser.class) {
+			Integer waterBlocks = geyserWaterBlocks.get();
+			if (waterBlocks == null) return null;
+
+			return new Particle.Geyser(waterBlocks);
+		}
+
+		if (type == Particle.GeyserBase.class) {
+			Integer waterBlocks = geyserWaterBlocks.get();
+			Float burstImpulse = geyserBurstImpulse.get();
+			if (waterBlocks == null || burstImpulse == null) return null;
+
+			return new Particle.GeyserBase(waterBlocks, burstImpulse);
+		}
+
+		return null;
 	}
 
 }

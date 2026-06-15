@@ -20,6 +20,7 @@ import org.jetbrains.annotations.NotNull;
 import net.kyori.adventure.text.Component;
 
 import com.nisovin.magicspells.util.*;
+import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.spells.TargetedSpell;
 import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.spells.TargetedEntitySpell;
@@ -41,18 +42,25 @@ public class ParticleCloudSpell extends TargetedSpell implements TargetedLocatio
 	private final ConfigData<Particle.Spell> spellOptions;
 	private final ConfigData<DustTransition> dustTransition;
 
+	private final ConfigData<Color> trailColor;
+	private final ConfigData<Integer> trailDuration;
+	private final ConfigData<Vector> trailTargetOffset;
+	private final ConfigData<Vector> trailTargetRelativeOffset;
+
 	private final ConfigData<Particle> particle;
 
 	private final ConfigData<Integer> waitTime;
 	private final ConfigData<Integer> shriekDelay;
 	private final ConfigData<Integer> ticksDuration;
 	private final ConfigData<Integer> durationOnUse;
+	private final ConfigData<Integer> geyserWaterBlocks;
 	private final ConfigData<Integer> reapplicationDelay;
 
 	private final ConfigData<Float> radius;
 	private final ConfigData<Float> radiusOnUse;
 	private final ConfigData<Float> radiusPerTick;
 	private final ConfigData<Float> dragonBreathPower;
+	private final ConfigData<Float> geyserBurstImpulse;
 	private final ConfigData<Float> sculkChargeRotation;
 
 	private final ConfigData<Boolean> useGravity;
@@ -81,6 +89,14 @@ public class ParticleCloudSpell extends TargetedSpell implements TargetedLocatio
 				new DustTransition(Color.RED, Color.BLACK, 1)
 		);
 		spellOptions = ConfigDataUtil.getSpellOptions(config.getMainConfig(), internalKey + "spell.color", internalKey + "spell.power", null);
+
+		trailColor = getConfigDataColor("trail.color", null);
+		trailDuration = getConfigDataInt("trail.duration", _ -> null);
+		trailTargetOffset = getConfigDataVector("trail.target-offset", new Vector());
+		trailTargetRelativeOffset = getConfigDataVector("trail.target-relative-offset", new Vector());
+
+		geyserWaterBlocks = getConfigDataInt("geyser.water-blocks", _ -> null);
+		geyserBurstImpulse = getConfigDataFloat("geyser.burst-impulse", _ -> null);
 
 		ConfigData<Material> material = getConfigDataMaterial("material", null);
 		if (material.isConstant()) {
@@ -180,7 +196,7 @@ public class ParticleCloudSpell extends TargetedSpell implements TargetedLocatio
 					cloud.addCustomEffect(eff.get(finalData), true);
 
 			Particle particle = this.particle.get(finalData);
-			cloud.setParticle(particle, getParticleData(particle, finalData));
+			if (particle != Particle.VIBRATION) cloud.setParticle(particle, getParticleData(particle, finalData));
 
 			Component customName = this.customName.get(finalData);
 			if (customName != null) {
@@ -194,6 +210,13 @@ public class ParticleCloudSpell extends TargetedSpell implements TargetedLocatio
 	}
 
 	private Object getParticleData(@NotNull Particle particle, @NotNull SpellData data) {
+		Object nmsData = MagicSpells.getVolatileCodeHandler().getVolatileParticleData(
+			particle,
+			() -> geyserWaterBlocks.get(data),
+			() -> geyserBurstImpulse.get(data)
+		);
+		if (nmsData != null) return nmsData;
+
 		Class<?> type = particle.getDataType();
 
 		if (type == ItemStack.class) return item.get(data);
@@ -206,6 +229,22 @@ public class ParticleCloudSpell extends TargetedSpell implements TargetedLocatio
 			return particle == Particle.ENTITY_EFFECT ?
 				argbColor.get(data) :
 				rgbColor.get(data);
+		}
+
+		if (type == Particle.Trail.class) {
+			Color color = trailColor.get(data);
+			if (color == null) return null;
+
+			Integer duration = trailDuration.get(data);
+			if (duration == null) return null;
+
+			Vector relativeOffset = trailTargetRelativeOffset.get(data);
+			Vector offset = trailTargetOffset.get(data);
+
+			Location loc = data.location().add(offset);
+			if (!relativeOffset.isZero()) Util.applyRelativeOffset(loc, relativeOffset);
+
+			return new Particle.Trail(loc, color, duration);
 		}
 
 		return switch (particle) {

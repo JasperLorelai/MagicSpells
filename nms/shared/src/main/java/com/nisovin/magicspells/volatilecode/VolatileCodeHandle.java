@@ -1,16 +1,22 @@
 package com.nisovin.magicspells.volatilecode;
 
+import java.util.function.Supplier;
+
 import org.bukkit.World;
+import org.bukkit.Particle;
 import org.bukkit.entity.*;
 import org.bukkit.Location;
 import org.bukkit.util.Vector;
 import org.bukkit.inventory.ItemStack;
 
+import org.jetbrains.annotations.Nullable;
+
 import net.kyori.adventure.text.Component;
+
+import com.nisovin.magicspells.util.glow.GlowManager;
 
 import io.papermc.paper.advancement.AdvancementDisplay.Frame;
 
-import com.nisovin.magicspells.util.glow.GlowManager;
 
 public abstract class VolatileCodeHandle {
 
@@ -43,5 +49,14 @@ public abstract class VolatileCodeHandle {
 	public abstract long countGlobalRegionSchedulerTasks();
 
 	public abstract long countEntitySchedulerTasks();
+
+	@Nullable
+	public Object getVolatileParticleData(
+		Particle particle,
+		Supplier<Integer> geyserWaterBlocks,
+		Supplier<Float> geyserBurstImpulse
+	) {
+		return null;
+	}
 
 }
