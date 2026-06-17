@@ -6,12 +6,12 @@ import java.util.HashMap;
 
 import org.bukkit.Location;
 import org.bukkit.event.Listener;
+import org.bukkit.entity.EntityType;
 import org.bukkit.damage.DamageType;
 import org.bukkit.event.EventHandler;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.damage.DamageSource;
 import org.bukkit.entity.LightningStrike;
-import org.bukkit.event.entity.PigZapEvent;
 import org.bukkit.event.entity.CreeperPowerEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 
@@ -155,17 +155,11 @@ public class LightningSpell extends TargetedSpell implements TargetedLocationSpe
 		}
 
 		@EventHandler
-		public void onPigZap(PigZapEvent event) {
-			ChargeOption option = striking.get(event.getLightning().getUniqueId());
-			if (option == null || option.transformEntities && option.changePig) return;
-
-			event.setCancelled(true);
-		}
-
-		@EventHandler
 		public void onZap(EntityZapEvent event) {
 			ChargeOption option = striking.get(event.getBolt().getUniqueId());
-			if (option == null || option.transformEntities) return;
+
+			if (option == null) return;
+			if (option.transformEntities && (event.getEntity().getType() != EntityType.PIG || option.changePig)) return;
 
 			event.setCancelled(true);
 		}

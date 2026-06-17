@@ -6,6 +6,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.bukkit.Location;
+import org.bukkit.entity.EntityType;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.attribute.AttributeInstance;
@@ -48,10 +49,13 @@ public class AttributeDefaultCondition extends OperatorCondition {
 
 	@Override
 	public boolean check(LivingEntity caster) {
-		AttributeInstance instance = caster.getAttribute(attribute);
+		EntityType entityType = caster.getType();
+		if (!entityType.hasDefaultAttributes()) return false;
+
+		AttributeInstance instance = entityType.getDefaultAttributes().getAttribute(attribute);
 		if (instance == null) return false;
 
-		return compare(instance.getDefaultValue(), value);
+		return compare(instance.getBaseValue(), value);
 	}
 
 	@Override

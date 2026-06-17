@@ -1,4 +1,4 @@
-package com.nisovin.magicspells.volatilecode.latest;
+package com.nisovin.magicspells.volatilecode.v26_1_2;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -12,7 +12,7 @@ import io.netty.channel.ChannelPipeline;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelOutboundHandlerAdapter;
 
-import net.minecraft.world.scores.TeamColor;
+import net.minecraft.ChatFormatting;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.world.scores.PlayerTeam;
 import net.minecraft.world.scores.Scoreboard;
@@ -42,7 +42,7 @@ import com.nisovin.magicspells.util.glow.LibsDisguiseHelper;
 import com.nisovin.magicspells.volatilecode.VolatileCodeHelper;
 import com.nisovin.magicspells.util.glow.PacketBasedGlowManager;
 
-public class VolatileGlowManagerLatest extends PacketBasedGlowManager<Packet<?>, ClientboundSetEntityDataPacket, ClientboundSetPlayerTeamPacket> {
+public class VolatileGlowManager_v26_1_2 extends PacketBasedGlowManager<Packet<?>, ClientboundSetEntityDataPacket, ClientboundSetPlayerTeamPacket> {
 
 	private static final EntityDataAccessor<Byte> DATA_SHARED_FLAGS_ID = new EntityDataAccessor<>(0, EntityDataSerializers.BYTE);
 
@@ -50,7 +50,7 @@ public class VolatileGlowManagerLatest extends PacketBasedGlowManager<Packet<?>,
 	private final MethodHandle teamPacketHandle;
 	private final VolatileCodeHelper helper;
 
-	public VolatileGlowManagerLatest(VolatileCodeHelper helper) {
+	public VolatileGlowManager_v26_1_2(VolatileCodeHelper helper) {
 		this.helper = helper;
 
 		try {
@@ -92,12 +92,14 @@ public class VolatileGlowManagerLatest extends PacketBasedGlowManager<Packet<?>,
 		Visibility visibility = getStringOption("name-tag-visibility", Visibility.ALWAYS, StringRepresentable.createNameLookup(Visibility.values()), config, helper::error);
 
 		Scoreboard scoreboard = new Scoreboard();
-		for (TeamColor color : TeamColor.values()) {
-			PlayerTeam team = new PlayerTeam(scoreboard, "magicspells:" + color.getSerializedName());
+		for (ChatFormatting formatting : ChatFormatting.values()) {
+			if (!formatting.isColor()) continue;
+
+			PlayerTeam team = new PlayerTeam(scoreboard, "magicspells:" + formatting.getName());
 			team.setSeeFriendlyInvisibles(seeFriendlyInvisibles);
 			team.setNameTagVisibility(visibility);
 			team.setCollisionRule(collision);
-			team.setColor(Optional.of(color));
+			team.setColor(formatting);
 
 			teamPackets.add(ClientboundSetPlayerTeamPacket.createAddOrModifyPacket(team, true));
 		}
@@ -110,8 +112,10 @@ public class VolatileGlowManagerLatest extends PacketBasedGlowManager<Packet<?>,
 		List<ClientboundSetPlayerTeamPacket> packets = new ArrayList<>();
 
 		Scoreboard scoreboard = new Scoreboard();
-		for (TeamColor color : TeamColor.values()) {
-			PlayerTeam team = new PlayerTeam(scoreboard, "magicspells:" + color.getSerializedName());
+		for (ChatFormatting formatting : ChatFormatting.values()) {
+			if (!formatting.isColor()) continue;
+
+			PlayerTeam team = new PlayerTeam(scoreboard, "magicspells:" + formatting.getName());
 			packets.add(ClientboundSetPlayerTeamPacket.createRemovePacket(team));
 		}
 
@@ -245,7 +249,7 @@ public class VolatileGlowManagerLatest extends PacketBasedGlowManager<Packet<?>,
 				return;
 			}
 
-			synchronized (VolatileGlowManagerLatest.this) {
+			synchronized (VolatileGlowManager_v26_1_2.this) {
 				if (glows.isEmpty() && perPlayerGlows.isEmpty()) {
 					super.write(ctx, msg, promise);
 					return;

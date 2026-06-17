@@ -7,8 +7,8 @@ dependencies {
     shadow("org.apache.commons:commons-math4-core:4.0-beta1")
     shadow("com.github.ben-manes.caffeine:caffeine:3.2.2")
     shadow("com.github.Chronoken:EffectLib:4e37625")
-    shadow("org.incendo:cloud-paper:2.0.0-beta.14")
-    shadow("org.incendo:cloud-minecraft-extras:2.0.0-beta.15")
+    shadow("org.incendo:cloud-paper:2.0.0-beta.16")
+    shadow("org.incendo:cloud-minecraft-extras:2.0.0-beta.16")
     shadow("org.incendo:cloud-processors-requirements:1.0.0-rc.1")
     shadow("org.bstats:bstats-bukkit:3.2.1")
     shadow("com.github.ezylang:EvalEx:3.6.2")
@@ -18,6 +18,7 @@ dependencies {
 
     shadow(project(path: ":nms:shared", configuration: "apiElements"))
     shadow(project(path: ":nms:latest")) { transitive = false }
+    shadow(project(path: ":nms:v26_1_2")) { transitive = false }
 
     implementation("com.github.retrooper:packetevents-spigot:2.11.2")
     implementation("net.dmulloy2:ProtocolLib:5.4.0") { transitive = false }
