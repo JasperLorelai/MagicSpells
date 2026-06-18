@@ -40,6 +40,7 @@ ignore-cast-item-title: true
 ignore-cast-item-author: true
 ignore-cast-item-lore: true
 ignore-cast-item-custom-model-data: true
+ignore-cast-item-item-model: true
 ignore-cast-item-durability:
     - "leather_helmet"
     - "leather_chestplate"

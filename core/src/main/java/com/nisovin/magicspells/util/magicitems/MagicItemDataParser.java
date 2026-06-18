@@ -126,6 +126,20 @@ public class MagicItemDataParser {
 						case "custom_model_data":
 							data.setAttribute(CUSTOM_MODEL_DATA, value.getAsInt());
 							break;
+						case "itemmodel":
+						case "item-model":
+						case "item_model":
+							String modelString = value.getAsString();
+
+							NamespacedKey modelKey = NamespacedKey.fromString(modelString);
+							if (modelKey == null) {
+								MagicSpells.error("Invalid item model key '" + modelString + "'.");
+								continue;
+							}
+
+							data.setAttribute(ITEM_MODEL, modelKey);
+
+							break;
 						case "power":
 							data.setAttribute(POWER, value.getAsInt());
 							break;

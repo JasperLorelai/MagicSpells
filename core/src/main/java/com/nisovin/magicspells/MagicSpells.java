@@ -175,6 +175,7 @@ public class MagicSpells extends JavaPlugin {
 	private boolean ignoreCastItemAuthor;
 	private boolean ignoreCastItemLore;
 	private boolean ignoreCastItemCustomModelData;
+	private boolean ignoreCastItemItemModel;
 
 	private boolean castOnAnimate;
 	private boolean enableManaSystem;
@@ -336,6 +337,7 @@ public class MagicSpells extends JavaPlugin {
 		ignoreCastItemAuthor = config.getBoolean(path + "ignore-cast-item-author", true);
 		ignoreCastItemLore = config.getBoolean(path + "ignore-cast-item-lore", true);
 		ignoreCastItemCustomModelData = config.getBoolean(path + "ignore-cast-item-custom-model-data", true);
+		ignoreCastItemItemModel = config.getBoolean(path + "ignore-cast-item-item-model", true);
 		ignoreCastItemDurability = Util.getMaterialList(config.getStringList(path + "ignore-cast-item-durability", new ArrayList<>()), ArrayList::new);
 
 		checkWorldPvpFlag = config.getBoolean(path + "check-world-pvp-flag", true);
@@ -1170,6 +1172,10 @@ public class MagicSpells extends JavaPlugin {
 
 	public static boolean ignoreCastItemCustomModelData() {
 		return plugin.ignoreCastItemCustomModelData;
+	}
+
+	public static boolean ignoreCastItemItemModel() {
+		return plugin.ignoreCastItemItemModel;
 	}
 
 	public static boolean ignoreCastItemNames() {
