@@ -16,7 +16,10 @@ public class ItemModelHandler {
         if (!config.isString(CONFIG_NAME)) return;
 
         String itemModel = config.getString(CONFIG_NAME);
+        if (itemModel == null) return;
+
         NamespacedKey itemModelKey = NamespacedKey.fromString(itemModel);
+        if (itemModelKey == null) return;
 
         meta.setItemModel(itemModelKey);
         data.setAttribute(ITEM_MODEL, itemModelKey);
