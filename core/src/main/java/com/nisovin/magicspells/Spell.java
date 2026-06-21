@@ -88,7 +88,7 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 	protected Multimap<String, VariableMod> variableModsCasted;
 	protected Multimap<String, VariableMod> variableModsTarget;
 
-	protected IntMap<UUID> chargesConsumed;
+	protected Map<UUID, ChargeState> chargeStates;
 
 	protected ListMultimap<EffectPosition, SpellEffect> effects;
 
@@ -375,7 +375,7 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 		charges = config.getInt(internalKey + "charges", 0);
 		rechargeSound = config.getString(internalKey + "recharge-sound", "");
 		nextCast = new HashMap<>();
-		chargesConsumed = new IntMap<>();
+		chargeStates = new HashMap<>();
 		nextCastServer = 0;
 
 		// Modifiers
@@ -1327,6 +1327,10 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 	 */
 	public boolean onCooldown(LivingEntity livingEntity) {
 		if (Perm.NO_COOLDOWN.has(livingEntity)) return false;
+
+		ChargeState state = chargeStates.get(livingEntity.getUniqueId());
+		if (state != null && state.isDepleted()) return true;
+
 		if (serverCooldown > 0 && nextCastServer > System.currentTimeMillis()) return true;
 
 		Long next = nextCast.get(livingEntity.getUniqueId());
@@ -1340,6 +1344,9 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 	 * @return The number of seconds remaining in the cooldown
 	 */
 	public float getCooldown(LivingEntity livingEntity) {
+		ChargeState state = chargeStates.get(livingEntity.getUniqueId());
+		if (state != null && state.isDepleted()) return state.nextRechargeSeconds();
+
 		float cd = 0;
 
 		Long next = nextCast.get(livingEntity.getUniqueId());
@@ -1400,23 +1407,13 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 
 		if (cooldown > 0) {
 			if (charges > 0) {
-				chargesConsumed.increment(uuid);
-				MagicSpells.scheduleDelayedTask(() -> {
-					chargesConsumed.decrement(uuid);
-					playSpellEffects(EffectPosition.CHARGE_USE, livingEntity, new SpellData(livingEntity));
-					if (rechargeSound == null) return;
-					if (rechargeSound.isEmpty()) return;
-					if (livingEntity instanceof Player player)
-						player.playSound(livingEntity.getLocation(), rechargeSound, 1.0F, 1.0F);
-				}, Math.round(TimeUtil.TICKS_PER_SECOND * cooldown));
+				ChargeState state = chargeStates.computeIfAbsent(uuid, _ -> new ChargeState());
+				state.consume(livingEntity, cooldown);
 			}
-			if (charges <= 0 || chargesConsumed.get(uuid) >= charges) {
-				nextCast.put(uuid, System.currentTimeMillis() + (long) (cooldown * TimeUtil.MILLISECONDS_PER_SECOND));
-			}
-
+			else nextCast.put(uuid, System.currentTimeMillis() + (long) (cooldown * TimeUtil.MILLISECONDS_PER_SECOND));
 		} else {
 			nextCast.remove(uuid);
-			chargesConsumed.remove(uuid);
+			chargeStates.remove(uuid);
 		}
 
 		if (serverCooldown > 0)
@@ -1507,7 +1504,8 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 	 * @return The number of charges consumed
 	 */
 	public int getCharges(LivingEntity livingEntity) {
-		return chargesConsumed.get(livingEntity.getUniqueId());
+		ChargeState state = chargeStates.get(livingEntity.getUniqueId());
+		return state == null ? 0 : state.consumed();
 	}
 
 	/**
@@ -2926,6 +2924,43 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 				ManaHandler mana = MagicSpells.getManaHandler();
 				if (mana != null) mana.showMana(pl);
 			}
+		}
+
+	}
+
+	protected class ChargeState {
+
+		private final PriorityQueue<Long> rechargeTimes = new PriorityQueue<>();
+
+		private void consume(LivingEntity entity, double rechargeDelay) {
+			if (isDepleted()) return;
+
+			long rechargeTime = System.currentTimeMillis() + (long) (rechargeDelay * TimeUtil.MILLISECONDS_PER_SECOND);
+			rechargeTimes.add(rechargeTime);
+
+			MagicSpells.scheduleDelayedTask(() -> {
+				if (!rechargeTimes.remove(rechargeTime)) return;
+
+				playSpellEffects(EffectPosition.CHARGE_USE, entity, new SpellData(entity));
+
+				if (rechargeSound.isEmpty() || !(entity instanceof Player player)) return;
+				player.playSound(entity, rechargeSound, 1, 1);
+			}, Math.round(TimeUtil.TICKS_PER_SECOND * rechargeDelay));
+		}
+
+		private boolean isDepleted() {
+			return rechargeTimes.size() >= charges;
+		}
+
+		private int consumed() {
+			return rechargeTimes.size();
+		}
+
+		private float nextRechargeSeconds() {
+			Long next = rechargeTimes.peek();
+			if (next == null) return 0;
+
+			return Math.max(0, (next - System.currentTimeMillis()) / ((float) TimeUtil.MILLISECONDS_PER_SECOND));
 		}
 
 	}
