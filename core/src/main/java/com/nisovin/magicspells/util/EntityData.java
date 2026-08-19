@@ -53,6 +53,7 @@ import io.papermc.paper.world.WeatheringCopperState;
 import io.papermc.paper.datacomponent.item.ResolvableProfile;
 import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 
+import com.nisovin.magicspells.Subspell;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.ai.CustomGoal;
 import com.nisovin.magicspells.util.config.ConfigData;
@@ -76,6 +77,8 @@ public class EntityData {
 	private final ConfigData<Angle> pitch;
 	private final ConfigData<Vector> relativeOffset;
 	private final ConfigData<Boolean> untargetableAfterSpawn;
+
+	private Subspell spellOnSpawn = null;
 
 	// Legacy support for DisguiseSpell section format
 
@@ -140,6 +143,14 @@ public class EntityData {
 		yaw = ConfigDataUtil.getAngle(config, "yaw", Angle.DEFAULT);
 		pitch = ConfigDataUtil.getAngle(config, "pitch", Angle.DEFAULT);
 		relativeOffset = ConfigDataUtil.getVector(config, "relative-offset", new Vector(0, 0, 0));
+
+		String spellOnSpawnName = config.getString("spell-on-spawn");
+		if (spellOnSpawnName != null && !spellOnSpawnName.isEmpty()) {
+			Subspell subspell = new Subspell(spellOnSpawnName);
+
+			if (subspell.process()) spellOnSpawn = subspell;
+			else MagicSpells.error("Invalid 'spell-on-spawn' specified on EntityData: '" + spellOnSpawnName + "'");
+		}
 
 		Multimap<Class<?>, Transformer<?>> transformers = MultimapBuilder.linkedHashKeys().arrayListValues().build();
 
@@ -986,6 +997,11 @@ public class EntityData {
 
 			if (postConsumer != null) postConsumer.accept(entity);
 		});
+
+		if (spellOnSpawn != null) {
+			if (spawned instanceof LivingEntity le) spellOnSpawn.subcast(data.retarget(le, null));
+			else spellOnSpawn.subcast(data.retarget(null, spawned.getLocation()));
+		}
 
 		if (untargetableAfterSpawn.get(data)) {
 			PersistentDataContainer pdc = spawned.getPersistentDataContainer();
