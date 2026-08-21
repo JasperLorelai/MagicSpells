@@ -164,6 +164,15 @@ public class EntityData {
 		addOptBoolean(transformers, config, "visible-by-default", Entity.class, Entity::setVisibleByDefault);
 		addOptBoolean(transformers, config, "custom-name-visible", Entity.class, Entity::setCustomNameVisible);
 
+		ConfigData<Boolean> visibleOnlyToRecipient = ConfigDataUtil.getBoolean(config, "visible-only-to-recipient", false);
+		transformers.put(Entity.class, (Entity entity, SpellData data) -> {
+			if (!(data.recipient() instanceof Player recipient)) return;
+			if (!visibleOnlyToRecipient.get(data)) return;
+
+			entity.setVisibleByDefault(false);
+			recipient.showEntity(MagicSpells.getInstance(), entity);
+		});
+
 		addOptEnum(transformers, config, "visual-fire", Entity.class, TriState.class, Entity::setVisualFire);
 
 		addOptInteger(transformers, config, "fire-ticks", Entity.class, Entity::setFireTicks);
