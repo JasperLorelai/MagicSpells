@@ -18,7 +18,7 @@ import java.lang.invoke.MethodType;
 import java.lang.reflect.Constructor;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
-import java.lang.annotation.Annotation;
+import java.util.concurrent.ConcurrentHashMap;
 
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -1944,62 +1944,39 @@ public class MagicSpells extends JavaPlugin {
 		registerEvents(listener, EventPriority.NORMAL);
 	}
 
-	public static void registerEvents(final Listener listener, EventPriority customPriority) {
+	private record EventHandlerData(
+		MethodHandle methodHandle,
+		String methodName,
+		Class<? extends Event> eventClass,
+		boolean overridePriority,
+		EventPriority defaultPriority,
+		boolean ignoreCancelled,
+		boolean isStatic
+	) {}
+
+	private static final Map<Class<?>, List<EventHandlerData>> EVENT_HANDLER_CACHE = new ConcurrentHashMap<>();
+
+	public static void registerEvents(Listener listener, EventPriority customPriority) {
 		if (customPriority == null) customPriority = EventPriority.NORMAL;
-		Class<?> listenerClass = listener.getClass();
 
-		Set<Method> methods;
-		try {
-			methods = Sets.union(
-				Set.of(listenerClass.getMethods()),
-				Set.of(listenerClass.getDeclaredMethods())
-			);
-		} catch (NoClassDefFoundError e) {
-			DebugHandler.debugNoClassDefFoundError(e);
-			return;
-		}
+		List<EventHandlerData> eventHandlers = EVENT_HANDLER_CACHE.computeIfAbsent(listener.getClass(), MagicSpells::discoverEventHandlers);
+		for (EventHandlerData eventHandler : eventHandlers) {
+			Class<? extends Event> eventClass = eventHandler.eventClass();
+			EventPriority priority = eventHandler.overridePriority() ? customPriority : eventHandler.defaultPriority();
 
-		MethodHandles.Lookup lookup;
-		try {
-			lookup = MethodHandles.privateLookupIn(listenerClass, MethodHandles.lookup());
-		} catch (IllegalAccessException e) {
-			DebugHandler.debugIllegalAccessException(e);
-			return;
-		}
-
-		for (final Method method : methods) {
-			final EventHandler handler = method.getAnnotation(EventHandler.class);
-			if (handler == null) continue;
-			EventPriority priority = handler.priority();
-
-			if (hasAnnotation(method, OverridePriority.class)) priority = customPriority;
-
-			final Class<?>[] paramTypes = method.getParameterTypes();
-			if (paramTypes.length != 1 || !Event.class.isAssignableFrom(paramTypes[0])) {
-				plugin.getLogger().severe("Wrong method arguments used for event type registered");
-				continue;
-			}
-
-			final Class<? extends Event> eventClass = paramTypes[0].asSubclass(Event.class);
-			final MethodHandle methodHandle;
-			try {
-				MethodHandle handle = lookup.unreflect(method);
-				if (!Modifier.isStatic(method.getModifiers())) handle = handle.bindTo(listener);
-				methodHandle = handle.asType(MethodType.methodType(void.class, Event.class));
-			} catch (IllegalAccessException e) {
-				plugin.getLogger().severe("Failed to create method handle for " + method.getName() + ": " + e.getMessage());
-				continue;
-			}
+			MethodHandle methodHandle = eventHandler.methodHandle();
+			if (!eventHandler.isStatic()) methodHandle = methodHandle.bindTo(listener);
+			MethodHandle finalHandle = methodHandle.asType(MethodType.methodType(void.class, Event.class));
 
 			EventExecutor executor = new EventExecutor() {
-				final String eventKey = plugin.enableProfiling ? "Event:" + listenerClass.getName().replace("com.nisovin.magicspells.", "") + '.' + method.getName() + '(' + eventClass.getSimpleName() + ')' : null;
+				final String eventKey = plugin.enableProfiling ? "Event:" + listener.getClass().getName().replace("com.nisovin.magicspells.", "") + '.' + eventHandler.methodName() + '(' + eventClass.getSimpleName() + ')' : null;
 
 				@Override
 				public void execute(@NotNull Listener listener, @NotNull Event event) {
 					try {
 						if (!eventClass.isAssignableFrom(event.getClass())) return;
 						long start = System.nanoTime();
-						methodHandle.invokeExact((Event) event);
+						finalHandle.invokeExact((Event) event);
 						if (plugin.enableProfiling) {
 							Long total = plugin.profilingTotalTime.get(eventKey);
 							if (total == null) total = 0L;
@@ -2016,12 +1993,60 @@ public class MagicSpells extends JavaPlugin {
 					}
 				}
 			};
-			Bukkit.getPluginManager().registerEvent(eventClass, listener, priority, executor, plugin, handler.ignoreCancelled());
+
+			Bukkit.getPluginManager().registerEvent(eventClass, listener, priority, executor, plugin, eventHandler.ignoreCancelled());
 		}
 	}
 
-	private static boolean hasAnnotation(Method m, Class<? extends Annotation> clazz) {
-		return m.getAnnotation(clazz) != null;
+	private static List<EventHandlerData> discoverEventHandlers(Class<?> listenerClass) {
+		Set<Method> methods;
+		try {
+			methods = Sets.union(
+				Set.of(listenerClass.getMethods()),
+				Set.of(listenerClass.getDeclaredMethods())
+			);
+		} catch (NoClassDefFoundError e) {
+			DebugHandler.debugNoClassDefFoundError(e);
+			return List.of();
+		}
+
+		MethodHandles.Lookup lookup;
+		try {
+			lookup = MethodHandles.privateLookupIn(listenerClass, MethodHandles.lookup());
+		} catch (IllegalAccessException e) {
+			DebugHandler.debugIllegalAccessException(e);
+			return List.of();
+		}
+
+		List<EventHandlerData> eventHandlers = new ArrayList<>();
+
+		for (Method method : methods) {
+			EventHandler handler = method.getAnnotation(EventHandler.class);
+			if (handler == null) continue;
+
+			boolean overridePriority = method.getAnnotation(OverridePriority.class) != null;
+			String methodName = method.getName();
+			boolean isStatic = Modifier.isStatic(method.getModifiers());
+
+			final Class<?>[] paramTypes = method.getParameterTypes();
+			if (paramTypes.length != 1 || !Event.class.isAssignableFrom(paramTypes[0])) {
+				plugin.getLogger().severe("Wrong method arguments used for event type registered");
+				continue;
+			}
+
+			Class<? extends Event> eventClass = paramTypes[0].asSubclass(Event.class);
+			MethodHandle methodHandle;
+			try {
+				methodHandle = lookup.unreflect(method);
+			} catch (IllegalAccessException e) {
+				plugin.getLogger().severe("Failed to create method handle for " + methodName + ": " + e.getMessage());
+				continue;
+			}
+
+			eventHandlers.add(new EventHandlerData(methodHandle, methodName, eventClass, overridePriority, handler.priority(), handler.ignoreCancelled(), isStatic));
+		}
+
+		return eventHandlers;
 	}
 
 	public static int scheduleDelayedTask(final Runnable task, long delay) {
