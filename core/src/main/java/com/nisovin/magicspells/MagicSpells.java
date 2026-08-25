@@ -1946,15 +1946,24 @@ public class MagicSpells extends JavaPlugin {
 
 	public static void registerEvents(final Listener listener, EventPriority customPriority) {
 		if (customPriority == null) customPriority = EventPriority.NORMAL;
+		Class<?> listenerClass = listener.getClass();
+
 		Set<Method> methods;
 		try {
-			Class<?> listenerClazz = listener.getClass();
 			methods = Sets.union(
-				Set.of(listenerClazz.getMethods()),
-				Set.of(listenerClazz.getDeclaredMethods())
+				Set.of(listenerClass.getMethods()),
+				Set.of(listenerClass.getDeclaredMethods())
 			);
 		} catch (NoClassDefFoundError e) {
 			DebugHandler.debugNoClassDefFoundError(e);
+			return;
+		}
+
+		MethodHandles.Lookup lookup;
+		try {
+			lookup = MethodHandles.privateLookupIn(listenerClass, MethodHandles.lookup());
+		} catch (IllegalAccessException e) {
+			DebugHandler.debugIllegalAccessException(e);
 			return;
 		}
 
@@ -1972,10 +1981,9 @@ public class MagicSpells extends JavaPlugin {
 			}
 
 			final Class<? extends Event> eventClass = paramTypes[0].asSubclass(Event.class);
-			method.setAccessible(true);
 			final MethodHandle methodHandle;
 			try {
-				MethodHandle handle = MethodHandles.privateLookupIn(listener.getClass(), MethodHandles.lookup()).unreflect(method);
+				MethodHandle handle = lookup.unreflect(method);
 				if (!Modifier.isStatic(method.getModifiers())) handle = handle.bindTo(listener);
 				methodHandle = handle.asType(MethodType.methodType(void.class, Event.class));
 			} catch (IllegalAccessException e) {
@@ -1984,7 +1992,7 @@ public class MagicSpells extends JavaPlugin {
 			}
 
 			EventExecutor executor = new EventExecutor() {
-				final String eventKey = plugin.enableProfiling ? "Event:" + listener.getClass().getName().replace("com.nisovin.magicspells.", "") + '.' + method.getName() + '(' + eventClass.getSimpleName() + ')' : null;
+				final String eventKey = plugin.enableProfiling ? "Event:" + listenerClass.getName().replace("com.nisovin.magicspells.", "") + '.' + method.getName() + '(' + eventClass.getSimpleName() + ')' : null;
 
 				@Override
 				public void execute(@NotNull Listener listener, @NotNull Event event) {
