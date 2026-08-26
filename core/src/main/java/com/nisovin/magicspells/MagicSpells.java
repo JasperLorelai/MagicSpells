@@ -1972,7 +1972,7 @@ public class MagicSpells extends JavaPlugin {
 			if (handler == null) continue;
 			EventPriority priority = handler.priority();
 
-			if (hasAnnotation(method, OverridePriority.class)) priority = customPriority;
+			if (method.getAnnotation(OverridePriority.class) != null) priority = customPriority;
 
 			final Class<?>[] paramTypes = method.getParameterTypes();
 			if (paramTypes.length != 1 || !Event.class.isAssignableFrom(paramTypes[0])) {
@@ -2018,10 +2018,6 @@ public class MagicSpells extends JavaPlugin {
 			};
 			Bukkit.getPluginManager().registerEvent(eventClass, listener, priority, executor, plugin, handler.ignoreCancelled());
 		}
-	}
-
-	private static boolean hasAnnotation(Method m, Class<? extends Annotation> clazz) {
-		return m.getAnnotation(clazz) != null;
 	}
 
 	public static int scheduleDelayedTask(final Runnable task, long delay) {
