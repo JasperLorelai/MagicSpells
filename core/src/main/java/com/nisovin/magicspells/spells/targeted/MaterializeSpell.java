@@ -54,7 +54,6 @@ public class MaterializeSpell extends TargetedSpell implements TargetedLocationS
 
 	private int rowSize = 1;
 	private int columnSize = 1;
-	private boolean hasMiddle = true;
 
 	public MaterializeSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
@@ -86,10 +85,6 @@ public class MaterializeSpell extends TargetedSpell implements TargetedLocationS
 
 		String area = getConfigString("area", "1x1");
 		if (!parseArea(area)) MagicSpells.error("MaterializeSpell " + internalName + " has an invalid 'area' defined: '" + area + "'. Falling back to 1x1.");
-
-		if (!hasMiddle && patterns != null) {
-			MagicSpells.error("MaterializeSpell " + internalName + " is using a shape array without a geometrical center! A single block will spawn instead.");
-		}
 	}
 
 	private boolean parseArea(String area) {
@@ -103,12 +98,6 @@ public class MaterializeSpell extends TargetedSpell implements TargetedLocationS
 
 			rowSize = row;
 			columnSize = column;
-
-			/*For this to work smoothly, we need to see if the shape array has a middle;
-			It becomes very complicated when working with shape arrays without a block as a geometrical middle
-			So unfortunately. Shape arrays without a block as its geometrical center cannot be accepted.
-			3x2, 9x8. Basically, if the product of the length and width is even. Don't use it. */
-			hasMiddle = ((rowSize * columnSize) % 2) == 1;
 
 			return true;
 		} catch (NumberFormatException e) {
@@ -167,12 +156,6 @@ public class MaterializeSpell extends TargetedSpell implements TargetedLocationS
 
 		data = event.getSpellData();
 		block = event.getTargetLocation().getBlock();
-
-		if (!hasMiddle) {
-			boolean done = materialize(caster, block, against, defaultMaterial, data);
-			if (!done) return noTarget(strFailed, data);
-			return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
-		}
 
 		// Unfortunately, shape array placement is world relative, will fix later. This is the top-left (NW) edge.
 		Location patternStart = block.getLocation().subtract(rowSize >> 1, 0, columnSize >> 1);
