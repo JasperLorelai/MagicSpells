@@ -72,7 +72,10 @@ public class MaterializeSpell extends TargetedSpell implements TargetedLocationS
 
 		String blockType = getConfigString("block-type", "stone");
 		material = Util.getMaterial(blockType);
-		if (material == null || !material.isBlock()) MagicSpells.error("MaterializeSpell '" + internalName + "' has an invalid block-type defined!");
+		if (material == null || !material.isBlock()) {
+			MagicSpells.error("MaterializeSpell '" + internalName + "' has an invalid 'block-type' defined! Falling back to 'stone'.");
+			material = Material.STONE;
+		}
 
 		height = getConfigDataInt("height", 1);
 		resetDelay = getConfigInt("reset-delay", 0);
@@ -231,6 +234,8 @@ public class MaterializeSpell extends TargetedSpell implements TargetedLocationS
 	}
 
 	private Material blockGenerator(boolean randomize, int patternPosition, int rowPosition) {
+		if (rowPatterns.length == 0 || rowPatterns[patternPosition].length == 0) return material;
+
 		int index = randomize ? random.nextInt(rowPatterns[patternPosition].length) : rowPosition;
 		return rowPatterns[patternPosition][index];
 	}
