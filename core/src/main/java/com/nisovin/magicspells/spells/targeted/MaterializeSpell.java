@@ -243,30 +243,31 @@ public class MaterializeSpell extends TargetedSpell implements TargetedLocationS
 			playSpellEffectsTrail(player.getLocation(), block.getLocation(), data);
 		}
 
+		if (falling) return true;
+
 		if (playBreakEffect) block.getWorld().playEffect(block.getLocation(), Effect.STEP_SOUND, blockState.getBlockData());
 		if (removeBlocks) blocks.add(block);
 
-		if (resetDelay > 0 && !falling) {
-			MagicSpells.scheduleDelayedTask(() -> {
-				if (materials.contains(block.getType())) {
-					blocks.remove(block);
+		if (resetDelay <= 0) return true;
+		MagicSpells.scheduleDelayedTask(() -> {
+			if (materials.contains(block.getType())) {
+				blocks.remove(block);
 
-					playSpellEffects(EffectPosition.DELAYED, block.getLocation(), data);
+				playSpellEffects(EffectPosition.DELAYED, block.getLocation(), data);
 
-					if (checkPlugins && player != null) {
-						MagicSpellsBlockBreakEvent event = new MagicSpellsBlockBreakEvent(block, player);
-						EventUtil.call(event);
-						if (event.isCancelled()) return;
-					}
-
-					BlockData blockData = block.getBlockData();
-					block.setType(Material.AIR);
-
-					playSpellEffects(EffectPosition.BLOCK_DESTRUCTION, block.getLocation(), data);
-					if (playBreakEffect) block.getWorld().playEffect(block.getLocation(), Effect.STEP_SOUND, blockData);
+				if (checkPlugins && player != null) {
+					MagicSpellsBlockBreakEvent event = new MagicSpellsBlockBreakEvent(block, player);
+					EventUtil.call(event);
+					if (event.isCancelled()) return;
 				}
-			}, resetDelay);
-		}
+
+				BlockData blockData = block.getBlockData();
+				block.setType(Material.AIR);
+
+				playSpellEffects(EffectPosition.BLOCK_DESTRUCTION, block.getLocation(), data);
+				if (playBreakEffect) block.getWorld().playEffect(block.getLocation(), Effect.STEP_SOUND, blockData);
+			}
+		}, resetDelay);
 
 		return true;
 	}
