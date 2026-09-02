@@ -48,16 +48,15 @@ public class MaterializeSpell extends TargetedSpell implements TargetedLocationS
 
 	private final ConfigData<Double> fallHeight;
 
-	private final String area;
 	private final String strFailed;
 
 	private final List<String> patterns;
 
 	private Material[][] rowPatterns;
 
-	private int rowSize;
-	private int columnSize;
-	private boolean hasMiddle;
+	private int rowSize = 1;
+	private int columnSize = 1;
+	private boolean hasMiddle = true;
 
 	public MaterializeSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
@@ -80,29 +79,45 @@ public class MaterializeSpell extends TargetedSpell implements TargetedLocationS
 
 		fallHeight = getConfigDataDouble("fall-height", 0.5);
 
-		area = getConfigString("area", "1x1");
 		strFailed = getConfigString("str-failed", "");
 
 		patterns = getConfigStringList("patterns", null);
+
+		String area = getConfigString("area", "1x1");
+		if (!parseArea(area)) MagicSpells.error("MaterializeSpell " + internalName + " has an invalid 'area' defined: '" + area + "'. Falling back to 1x1.");
+
+		if (!hasMiddle && patterns != null) {
+			MagicSpells.error("MaterializeSpell " + internalName + " is using a shape array without a geometrical center! A single block will spawn instead.");
+		}
+	}
+
+	private boolean parseArea(String area) {
+		String[] splits = area.split("x", 2);
+		if (splits.length != 2) return false;
+
+		try {
+			int row = Integer.parseInt(splits[0]);
+			int column = Integer.parseInt(splits[1]);
+			if (row <= 0 || column <= 0) return false;
+
+			rowSize = row;
+			columnSize = column;
+
+			/*For this to work smoothly, we need to see if the shape array has a middle;
+			It becomes very complicated when working with shape arrays without a block as a geometrical middle
+			So unfortunately. Shape arrays without a block as its geometrical center cannot be accepted.
+			3x2, 9x8. Basically, if the product of the length and width is even. Don't use it. */
+			hasMiddle = ((rowSize * columnSize) % 2) == 1;
+
+			return true;
+		} catch (NumberFormatException e) {
+			return false;
+		}
 	}
 
 	@Override
 	public void initialize() {
 		super.initialize();
-
-		String[] areaParts = area.split("x", 2);
-		rowSize = Integer.parseInt(areaParts[0]);
-		columnSize = Integer.parseInt(areaParts[1]);
-
-		/*For this to work smoothly, we need to see if the shape array has a middle;
-		It becomes very complicated when working with shape arrays without a block as a geometrical middle
-		So unfortunately. Shape arrays without a block as its geometrical center cannot be accepted.
-		3x2, 9x8. Basically, if the product of the length and width is even. Don't use it. */
-		hasMiddle = ((rowSize * columnSize) % 2) == 1;
-
-		if (!hasMiddle && patterns != null) {
-			MagicSpells.error("MaterializeSpell " + internalName + " is using a shape array without a geometrical center! A single block will spawn instead.");
-		}
 
 		if (patterns == null) {
 			rowPatterns = new Material[1][1];
