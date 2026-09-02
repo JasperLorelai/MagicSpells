@@ -16,7 +16,6 @@ import org.bukkit.block.data.BlockData;
 import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.spells.TargetedSpell;
-import com.nisovin.magicspells.util.compat.EventUtil;
 import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.spelleffects.EffectPosition;
 import com.nisovin.magicspells.spells.TargetedLocationSpell;
@@ -216,6 +215,11 @@ public class MaterializeSpell extends TargetedSpell implements TargetedLocationS
 
 					rowPosition++;
 
+					if (falling) {
+						spawnFallingBlock(player, spawnBlock, material, data);
+						continue;
+					}
+
 					boolean done = materializeBlock(player, spawnBlock, material, data.location(spawnLoc));
 					if (!done) return false;
 				}
@@ -229,28 +233,21 @@ public class MaterializeSpell extends TargetedSpell implements TargetedLocationS
 
 	private boolean materializeBlock(Player player, Block block, Material material, SpellData data) {
 		BlockState blockState = block.getState();
+		block.setType(material, applyPhysics);
 
 		if (checkPlugins && player != null) {
-			block.setType(material, false);
 			MagicSpellsBlockPlaceEvent event = new MagicSpellsBlockPlaceEvent(block, blockState, block.getRelative(BlockFace.DOWN), player.getEquipment().getItemInMainHand(), player, true);
-			EventUtil.call(event);
-			blockState.update(true);
-			if (event.isCancelled()) return false;
+			if (!event.callEvent()) {
+				blockState.update(true);
+				return false;
+			}
 		}
-
-		if (falling) {
-			Location location = block.getLocation().add(0.5, fallHeight.get(data), 0.5);
-			block.getWorld().spawn(location, FallingBlock.class, fb -> fb.setBlockData(material.createBlockData()));
-		}
-		else block.setType(material, applyPhysics);
 
 		playSpellEffects(EffectPosition.TARGET, block.getLocation(), data);
 		if (player != null) {
 			playSpellEffects(EffectPosition.CASTER, player, data);
 			playSpellEffectsTrail(player.getLocation(), block.getLocation(), data);
 		}
-
-		if (falling) return true;
 
 		if (playBreakEffect) block.getWorld().playEffect(block.getLocation(), Effect.STEP_SOUND, blockState.getBlockData());
 		if (removeBlocks) blocks.add(block);
@@ -264,8 +261,7 @@ public class MaterializeSpell extends TargetedSpell implements TargetedLocationS
 
 				if (checkPlugins && player != null) {
 					MagicSpellsBlockBreakEvent event = new MagicSpellsBlockBreakEvent(block, player);
-					EventUtil.call(event);
-					if (event.isCancelled()) return;
+					if (!event.callEvent()) return;
 				}
 
 				BlockData blockData = block.getBlockData();
@@ -277,6 +273,17 @@ public class MaterializeSpell extends TargetedSpell implements TargetedLocationS
 		}, resetDelay);
 
 		return true;
+	}
+
+	private void spawnFallingBlock(Player player, Block block, Material material, SpellData data) {
+		Location location = block.getLocation().add(0.5, fallHeight.get(data), 0.5);
+		block.getWorld().spawn(location, FallingBlock.class, fb -> fb.setBlockData(material.createBlockData()));
+
+		playSpellEffects(EffectPosition.TARGET, block.getLocation(), data);
+		if (player != null) {
+			playSpellEffects(EffectPosition.CASTER, player, data);
+			playSpellEffectsTrail(player.getLocation(), block.getLocation(), data);
+		}
 	}
 
 }
