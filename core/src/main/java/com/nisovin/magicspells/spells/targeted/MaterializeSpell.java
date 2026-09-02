@@ -143,13 +143,12 @@ public class MaterializeSpell extends TargetedSpell implements TargetedLocationS
 
 	@Override
 	public CastResult cast(SpellData data) {
-		if (!(data.caster() instanceof Player caster)) return new CastResult(PostCastAction.ALREADY_HANDLED, data);
+		Player caster = data.caster() instanceof Player p ? p : null;
 
 		RayTraceResult result = rayTraceBlocks(data);
 		if (result == null) return noTarget(data);
 
-		Block against = result.getHitBlock();
-		Block block = against.getRelative(result.getHitBlockFace());
+		Block block = result.getHitBlock().getRelative(result.getHitBlockFace());
 
 		SpellTargetLocationEvent event = new SpellTargetLocationEvent(this, data, block.getLocation());
 		if (!event.callEvent()) return noTarget(strFailed, event);
@@ -157,6 +156,32 @@ public class MaterializeSpell extends TargetedSpell implements TargetedLocationS
 		data = event.getSpellData();
 		block = event.getTargetLocation().getBlock();
 
+		boolean done = materializeArea(caster, block, data);
+		return done ? new CastResult(PostCastAction.HANDLE_NORMALLY, data) : noTarget(strFailed, data);
+	}
+
+	@Override
+	public CastResult castAtLocation(SpellData data) {
+		Player caster = data.caster() instanceof Player p ? p : null;
+
+		Block block = data.location().getBlock();
+		if (!block.getType().isAir()) {
+			block = block.getRelative(BlockFace.UP);
+			data = data.location(block.getLocation());
+
+			SpellTargetLocationEvent event = new SpellTargetLocationEvent(this, data, block.getLocation());
+			if (!event.callEvent()) return noTarget(strFailed, event);
+			data = event.getSpellData();
+			block = event.getTargetLocation().getBlock();
+
+			if (!block.getType().isAir()) return noTarget(strFailed, data);
+		}
+
+		boolean done = materializeArea(caster, block, data);
+		return done ? new CastResult(PostCastAction.HANDLE_NORMALLY, data) : noTarget(strFailed, data);
+	}
+
+	private boolean materializeArea(Player player, Block block, SpellData data) {
 		// Unfortunately, shape array placement is world relative, will fix later. This is the top-left (NW) edge.
 		Location patternStart = block.getLocation().subtract(rowSize >> 1, 0, columnSize >> 1);
 
@@ -176,12 +201,11 @@ public class MaterializeSpell extends TargetedSpell implements TargetedLocationS
 				for (int x = 0; x < rowSize; x++) {
 					Location spawnLoc = patternStart.clone().add(x, y, z);
 					Block spawnBlock = spawnLoc.getBlock();
-					Block below = spawnBlock.getRelative(BlockFace.DOWN);
 
 					if (rowPosition >= rowLength) rowPosition = 0;
 
 					Material material;
-					if (stretchPattern && y >= 1) material = below.getType();
+					if (stretchPattern && y >= 1) material = spawnBlock.getRelative(BlockFace.DOWN).getType();
 					else {
 						if (patterns.length == 0 || rowLength == 0) material = this.defaultMaterial;
 						else {
@@ -192,38 +216,23 @@ public class MaterializeSpell extends TargetedSpell implements TargetedLocationS
 
 					rowPosition++;
 
-					boolean done = materialize(caster, spawnBlock, below, material, data.location(spawnLoc));
-					if (!done) return noTarget(strFailed, data);
+					boolean done = materializeBlock(player, spawnBlock, material, data.location(spawnLoc));
+					if (!done) return false;
 				}
 
 				patternPosition++;
 			}
 		}
 
-		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
+		return true;
 	}
 
-	@Override
-	public CastResult castAtLocation(SpellData data) {
-		Player caster = data.caster() instanceof Player p ? p : null;
-
-		Block block = data.location().getBlock();
-		if (!block.getType().isAir()) {
-			block = block.getRelative(BlockFace.UP);
-			data = data.location(block.getLocation());
-			if (!block.getType().isAir()) return noTarget(strFailed, data);
-		}
-
-		boolean done = materialize(caster, block, block.getRelative(BlockFace.DOWN), defaultMaterial, data);
-		return done ? new CastResult(PostCastAction.HANDLE_NORMALLY, data) : noTarget(strFailed, data);
-	}
-
-	private boolean materialize(Player player, Block block, Block against, Material material, SpellData data) {
+	private boolean materializeBlock(Player player, Block block, Material material, SpellData data) {
 		BlockState blockState = block.getState();
 
 		if (checkPlugins && player != null) {
 			block.setType(material, false);
-			MagicSpellsBlockPlaceEvent event = new MagicSpellsBlockPlaceEvent(block, blockState, against, player.getEquipment().getItemInMainHand(), player, true);
+			MagicSpellsBlockPlaceEvent event = new MagicSpellsBlockPlaceEvent(block, blockState, block.getRelative(BlockFace.DOWN), player.getEquipment().getItemInMainHand(), player, true);
 			EventUtil.call(event);
 			blockState.update(true);
 			if (event.isCancelled()) return false;
