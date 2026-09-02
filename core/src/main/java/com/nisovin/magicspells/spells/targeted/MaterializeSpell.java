@@ -31,19 +31,19 @@ public class MaterializeSpell extends TargetedSpell implements TargetedLocationS
 	private final List<Block> blocks = new ArrayList<>();
 	private final Set<Material> materials = new HashSet<>();
 
-	private final boolean falling;
-	private final boolean applyPhysics;
-	private final boolean checkPlugins;
-	private final boolean removeBlocks;
-	private final boolean stretchPattern;
-	private final boolean playBreakEffect;
-	private final boolean randomizePattern;
-	private final boolean restartPatternEachRow;
+	private final ConfigData<Boolean> falling;
+	private final ConfigData<Boolean> applyPhysics;
+	private final ConfigData<Boolean> checkPlugins;
+	private final ConfigData<Boolean> removeBlocks;
+	private final ConfigData<Boolean> stretchPattern;
+	private final ConfigData<Boolean> playBreakEffect;
+	private final ConfigData<Boolean> randomizePattern;
+	private final ConfigData<Boolean> restartPatternEachRow;
 
 	private Material defaultMaterial;
 
-	private final int resetDelay;
 	private final ConfigData<Integer> height;
+	private final ConfigData<Integer> resetDelay;
 
 	private final ConfigData<Double> fallHeight;
 
@@ -57,14 +57,14 @@ public class MaterializeSpell extends TargetedSpell implements TargetedLocationS
 	public MaterializeSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
 
-		falling = getConfigBoolean("falling", false);
-		applyPhysics = getConfigBoolean("apply-physics", true);
-		checkPlugins = getConfigBoolean("check-plugins", true);
-		removeBlocks = getConfigBoolean("remove-blocks", true);
-		stretchPattern = getConfigBoolean("stretch-pattern", false);
-		playBreakEffect = getConfigBoolean("play-break-effect", true);
-		randomizePattern = getConfigBoolean("randomize-pattern", false);
-		restartPatternEachRow = getConfigBoolean("restart-pattern-each-row", false);
+		falling = getConfigDataBoolean("falling", false);
+		applyPhysics = getConfigDataBoolean("apply-physics", true);
+		checkPlugins = getConfigDataBoolean("check-plugins", true);
+		removeBlocks = getConfigDataBoolean("remove-blocks", true);
+		stretchPattern = getConfigDataBoolean("stretch-pattern", false);
+		playBreakEffect = getConfigDataBoolean("play-break-effect", true);
+		randomizePattern = getConfigDataBoolean("randomize-pattern", false);
+		restartPatternEachRow = getConfigDataBoolean("restart-pattern-each-row", false);
 
 		String blockType = getConfigString("block-type", "stone");
 		defaultMaterial = Material.matchMaterial(blockType);
@@ -74,7 +74,7 @@ public class MaterializeSpell extends TargetedSpell implements TargetedLocationS
 		}
 
 		height = getConfigDataInt("height", 1);
-		resetDelay = getConfigInt("reset-delay", 0);
+		resetDelay = getConfigDataInt("reset-delay", 0);
 
 		fallHeight = getConfigDataDouble("fall-height", 0.5);
 
@@ -186,6 +186,19 @@ public class MaterializeSpell extends TargetedSpell implements TargetedLocationS
 
 		int rowPosition = 0;
 
+		boolean falling = this.falling.get(data);
+		boolean stretchPattern = this.stretchPattern.get(data);
+		boolean randomizePattern = this.randomizePattern.get(data);
+		boolean restartPatternEachRow = this.restartPatternEachRow.get(data);
+
+		MaterializeOptions options = new MaterializeOptions(
+			applyPhysics.get(data),
+			checkPlugins.get(data),
+			playBreakEffect.get(data),
+			removeBlocks.get(data),
+			resetDelay.get(data)
+		);
+
 		for (int y = 0; y < Math.max(height.get(data), 1); y++) {
 			int patternPosition = 0;
 
@@ -220,7 +233,7 @@ public class MaterializeSpell extends TargetedSpell implements TargetedLocationS
 						continue;
 					}
 
-					boolean done = materializeBlock(player, spawnBlock, material, data.location(spawnLoc));
+					boolean done = materializeBlock(player, spawnBlock, material, data.location(spawnLoc), options);
 					if (!done) return false;
 				}
 
@@ -231,11 +244,19 @@ public class MaterializeSpell extends TargetedSpell implements TargetedLocationS
 		return true;
 	}
 
-	private boolean materializeBlock(Player player, Block block, Material material, SpellData data) {
-		BlockState blockState = block.getState();
-		block.setType(material, applyPhysics);
+	private record MaterializeOptions(
+		boolean applyPhysics,
+		boolean checkPlugins,
+		boolean playBreakEffect,
+		boolean removeBlocks,
+		int resetDelay
+	) {}
 
-		if (checkPlugins && player != null) {
+	private boolean materializeBlock(Player player, Block block, Material material, SpellData data, MaterializeOptions options) {
+		BlockState blockState = block.getState();
+		block.setType(material, options.applyPhysics);
+
+		if (options.checkPlugins && player != null) {
 			MagicSpellsBlockPlaceEvent event = new MagicSpellsBlockPlaceEvent(block, blockState, block.getRelative(BlockFace.DOWN), player.getEquipment().getItemInMainHand(), player, true);
 			if (!event.callEvent()) {
 				blockState.update(true);
@@ -249,17 +270,17 @@ public class MaterializeSpell extends TargetedSpell implements TargetedLocationS
 			playSpellEffectsTrail(player.getLocation(), block.getLocation(), data);
 		}
 
-		if (playBreakEffect) block.getWorld().playEffect(block.getLocation(), Effect.STEP_SOUND, blockState.getBlockData());
-		if (removeBlocks) blocks.add(block);
+		if (options.playBreakEffect) block.getWorld().playEffect(block.getLocation(), Effect.STEP_SOUND, blockState.getBlockData());
+		if (options.removeBlocks) blocks.add(block);
 
-		if (resetDelay <= 0) return true;
+		if (options.resetDelay <= 0) return true;
 		MagicSpells.scheduleDelayedTask(() -> {
 			if (materials.contains(block.getType())) {
 				blocks.remove(block);
 
 				playSpellEffects(EffectPosition.DELAYED, block.getLocation(), data);
 
-				if (checkPlugins && player != null) {
+				if (options.checkPlugins && player != null) {
 					MagicSpellsBlockBreakEvent event = new MagicSpellsBlockBreakEvent(block, player);
 					if (!event.callEvent()) return;
 				}
@@ -268,9 +289,9 @@ public class MaterializeSpell extends TargetedSpell implements TargetedLocationS
 				block.setType(Material.AIR);
 
 				playSpellEffects(EffectPosition.BLOCK_DESTRUCTION, block.getLocation(), data);
-				if (playBreakEffect) block.getWorld().playEffect(block.getLocation(), Effect.STEP_SOUND, blockData);
+				if (options.playBreakEffect) block.getWorld().playEffect(block.getLocation(), Effect.STEP_SOUND, blockData);
 			}
-		}, resetDelay);
+		}, options.resetDelay);
 
 		return true;
 	}
