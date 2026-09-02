@@ -11,6 +11,7 @@ import org.bukkit.block.BlockFace;
 import org.bukkit.block.BlockState;
 import org.bukkit.entity.FallingBlock;
 import org.bukkit.util.RayTraceResult;
+import org.bukkit.block.data.BlockData;
 
 import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.MagicSpells;
@@ -242,7 +243,7 @@ public class MaterializeSpell extends TargetedSpell implements TargetedLocationS
 			playSpellEffectsTrail(player.getLocation(), block.getLocation(), data);
 		}
 
-		if (playBreakEffect) block.getWorld().playEffect(block.getLocation(), Effect.STEP_SOUND, block.getBlockData());
+		if (playBreakEffect) block.getWorld().playEffect(block.getLocation(), Effect.STEP_SOUND, blockState.getBlockData());
 		if (removeBlocks) blocks.add(block);
 
 		if (resetDelay > 0 && !falling) {
@@ -258,10 +259,11 @@ public class MaterializeSpell extends TargetedSpell implements TargetedLocationS
 						if (event.isCancelled()) return;
 					}
 
+					BlockData blockData = block.getBlockData();
 					block.setType(Material.AIR);
 
 					playSpellEffects(EffectPosition.BLOCK_DESTRUCTION, block.getLocation(), data);
-					if (playBreakEffect) block.getWorld().playEffect(block.getLocation(), Effect.STEP_SOUND, block.getBlockData());
+					if (playBreakEffect) block.getWorld().playEffect(block.getLocation(), Effect.STEP_SOUND, blockData);
 				}
 			}, resetDelay);
 		}
