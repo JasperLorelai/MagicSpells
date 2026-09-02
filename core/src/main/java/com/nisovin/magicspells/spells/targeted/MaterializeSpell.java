@@ -188,7 +188,8 @@ public class MaterializeSpell extends TargetedSpell implements TargetedLocationS
 			for (int z = 0; z < columnSize; z++) {
 				if (patternPosition >= patterns.length) patternPosition = 0;
 
-				int rowLength = patterns[patternPosition].length;
+				int rowLength = 0;
+				if (patterns.length > 0) rowLength = patterns[patternPosition].length;
 
 				if (restartPatternEachRow) rowPosition = 0;
 
