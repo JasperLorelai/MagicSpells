@@ -41,7 +41,7 @@ public class MaterializeSpell extends TargetedSpell implements TargetedLocationS
 	private final boolean randomizePattern;
 	private final boolean restartPatternEachRow;
 
-	private Material material;
+	private Material defaultMaterial;
 
 	private final int resetDelay;
 	private final ConfigData<Integer> height;
@@ -71,10 +71,10 @@ public class MaterializeSpell extends TargetedSpell implements TargetedLocationS
 		restartPatternEachRow = getConfigBoolean("restart-pattern-each-row", false);
 
 		String blockType = getConfigString("block-type", "stone");
-		material = Util.getMaterial(blockType);
-		if (material == null || !material.isBlock()) {
+		defaultMaterial = Material.matchMaterial(blockType);
+		if (defaultMaterial == null || !defaultMaterial.isBlock()) {
 			MagicSpells.error("MaterializeSpell '" + internalName + "' has an invalid 'block-type' defined! Falling back to 'stone'.");
-			material = Material.STONE;
+			defaultMaterial = Material.STONE;
 		}
 
 		height = getConfigDataInt("height", 1);
@@ -124,8 +124,8 @@ public class MaterializeSpell extends TargetedSpell implements TargetedLocationS
 
 		if (patterns == null) {
 			rowPatterns = new Material[1][1];
-			rowPatterns[0][0] = material;
-			materials.add(material);
+			rowPatterns[0][0] = defaultMaterial;
+			materials.add(defaultMaterial);
 		} else parseBlocks();
 	}
 
@@ -172,7 +172,7 @@ public class MaterializeSpell extends TargetedSpell implements TargetedLocationS
 		block = event.getTargetLocation().getBlock();
 
 		if (!hasMiddle) {
-			boolean done = materialize(caster, block, against, data);
+			boolean done = materialize(caster, block, against, defaultMaterial, data);
 			if (!done) return noTarget(strFailed, data);
 			return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 		}
@@ -201,13 +201,19 @@ public class MaterializeSpell extends TargetedSpell implements TargetedLocationS
 
 					if (rowPosition >= rowLength) rowPosition = 0;
 
-					if (!stretchPattern || y < 1)
-						material = blockGenerator(randomizePattern, patternPosition, rowPosition);
-					else material = ground.getType();
+					Material material;
+					if (stretchPattern && y >= 1) material = ground.getType();
+					else {
+						if (rowPatterns.length == 0 || rowLength == 0) material = this.defaultMaterial;
+						else {
+							int index = randomizePattern ? random.nextInt(rowLength) : rowPosition;
+							material = rowPatterns[patternPosition][index];
+						}
+					}
 
 					rowPosition++;
 
-					boolean done = materialize(caster, air, ground, data.location(block.getLocation()));
+					boolean done = materialize(caster, air, ground, material, data.location(block.getLocation()));
 					if (!done) return noTarget(strFailed, data);
 				}
 
@@ -229,18 +235,11 @@ public class MaterializeSpell extends TargetedSpell implements TargetedLocationS
 			if (!block.getType().isAir()) return noTarget(strFailed, data);
 		}
 
-		boolean done = materialize(caster, block, block.getRelative(BlockFace.DOWN), data);
+		boolean done = materialize(caster, block, block.getRelative(BlockFace.DOWN), defaultMaterial, data);
 		return done ? new CastResult(PostCastAction.HANDLE_NORMALLY, data) : noTarget(strFailed, data);
 	}
 
-	private Material blockGenerator(boolean randomize, int patternPosition, int rowPosition) {
-		if (rowPatterns.length == 0 || rowPatterns[patternPosition].length == 0) return material;
-
-		int index = randomize ? random.nextInt(rowPatterns[patternPosition].length) : rowPosition;
-		return rowPatterns[patternPosition][index];
-	}
-
-	private boolean materialize(Player player, Block block, Block against, SpellData data) {
+	private boolean materialize(Player player, Block block, Block against, Material material, SpellData data) {
 		BlockState blockState = block.getState();
 
 		if (checkPlugins && player != null) {
