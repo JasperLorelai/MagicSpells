@@ -50,9 +50,7 @@ public class MaterializeSpell extends TargetedSpell implements TargetedLocationS
 
 	private final String strFailed;
 
-	private final List<String> patterns;
-
-	private Material[][] rowPatterns;
+	private Material[][] patterns;
 
 	private int rowSize = 1;
 	private int columnSize = 1;
@@ -84,7 +82,7 @@ public class MaterializeSpell extends TargetedSpell implements TargetedLocationS
 
 		strFailed = getConfigString("str-failed", "");
 
-		patterns = getConfigStringList("patterns", null);
+		parsePatterns(getConfigStringList("patterns", List.of()));
 
 		String area = getConfigString("area", "1x1");
 		if (!parseArea(area)) MagicSpells.error("MaterializeSpell " + internalName + " has an invalid 'area' defined: '" + area + "'. Falling back to 1x1.");
@@ -118,30 +116,29 @@ public class MaterializeSpell extends TargetedSpell implements TargetedLocationS
 		}
 	}
 
-	@Override
-	public void initialize() {
-		super.initialize();
-
-		if (patterns == null) {
-			rowPatterns = new Material[1][1];
-			rowPatterns[0][0] = defaultMaterial;
+	public void parsePatterns(List<String> patternList) {
+		if (patternList.isEmpty()) {
+			patterns = new Material[0][0];
 			materials.add(defaultMaterial);
-		} else parseBlocks();
-	}
+			return;
+		}
 
-	private void parseBlocks() {
-		rowPatterns = new Material[patterns.size()][];
+		patterns = new Material[patternList.size()][];
 
-		for (int i = 0; i < patterns.size(); i++) {
-			String[] split = patterns.get(i).split(",");
-			rowPatterns[i] = new Material[split.length];
+		for (int i = 0; i < patternList.size(); i++) {
+			String[] split = patternList.get(i).split(",");
+			patterns[i] = new Material[split.length];
 
 			for (int j = 0; j < split.length; j++) {
-				Material mat = Util.getMaterial(split[j]);
-				if (mat == null) mat = Material.STONE;
+				String matName = split[j];
+				Material mat = Material.matchMaterial(matName);
+				if (mat == null || !mat.isBlock()) {
+					MagicSpells.error("MaterializeSpell " + internalName + " has an invalid 'patterns[" + i + "][" + j + "]' defined: '" + matName + "'. Falling back to 'stone'.");
+					mat = Material.STONE;
+				}
 
 				materials.add(mat);
-				rowPatterns[i][j] = mat;
+				patterns[i][j] = mat;
 			}
 		}
 	}
@@ -189,9 +186,9 @@ public class MaterializeSpell extends TargetedSpell implements TargetedLocationS
 			int patternPosition = 0;
 
 			for (int z = 0; z < columnSize; z++) {
-				if (patterns != null && patternPosition >= patterns.size()) patternPosition = 0;
+				if (patternPosition >= patterns.length) patternPosition = 0;
 
-				int rowLength = rowPatterns[patternPosition].length;
+				int rowLength = patterns[patternPosition].length;
 
 				if (restartPatternEachRow) rowPosition = 0;
 
@@ -204,10 +201,10 @@ public class MaterializeSpell extends TargetedSpell implements TargetedLocationS
 					Material material;
 					if (stretchPattern && y >= 1) material = ground.getType();
 					else {
-						if (rowPatterns.length == 0 || rowLength == 0) material = this.defaultMaterial;
+						if (patterns.length == 0 || rowLength == 0) material = this.defaultMaterial;
 						else {
 							int index = randomizePattern ? random.nextInt(rowLength) : rowPosition;
-							material = rowPatterns[patternPosition][index];
+							material = patterns[patternPosition][index];
 						}
 					}
 
