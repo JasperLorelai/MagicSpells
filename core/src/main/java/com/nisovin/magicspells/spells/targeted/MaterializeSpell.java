@@ -175,10 +175,7 @@ public class MaterializeSpell extends TargetedSpell implements TargetedLocationS
 		}
 
 		// Unfortunately, shape array placement is world relative, will fix later. This is the top-left (NW) edge.
-		Location patternStart = against.getLocation();
-
-		patternStart.setX(against.getX() - Math.ceil(rowSize / 2F));
-		patternStart.setZ(against.getZ() - Math.ceil(columnSize / 2F));
+		Location patternStart = block.getLocation().subtract(rowSize >> 1, 0, columnSize >> 1);
 
 		int rowPosition = 0;
 
@@ -194,13 +191,14 @@ public class MaterializeSpell extends TargetedSpell implements TargetedLocationS
 				if (restartPatternEachRow) rowPosition = 0;
 
 				for (int x = 0; x < rowSize; x++) {
-					Block ground = patternStart.clone().add(x, y, z).getBlock();
-					Block air = ground.getRelative(BlockFace.UP);
+					Location spawnLoc = patternStart.clone().add(x, y, z);
+					Block spawnBlock = spawnLoc.getBlock();
+					Block below = spawnBlock.getRelative(BlockFace.DOWN);
 
 					if (rowPosition >= rowLength) rowPosition = 0;
 
 					Material material;
-					if (stretchPattern && y >= 1) material = ground.getType();
+					if (stretchPattern && y >= 1) material = below.getType();
 					else {
 						if (patterns.length == 0 || rowLength == 0) material = this.defaultMaterial;
 						else {
@@ -211,7 +209,7 @@ public class MaterializeSpell extends TargetedSpell implements TargetedLocationS
 
 					rowPosition++;
 
-					boolean done = materialize(caster, air, ground, material, data.location(block.getLocation()));
+					boolean done = materialize(caster, spawnBlock, below, material, data.location(spawnLoc));
 					if (!done) return noTarget(strFailed, data);
 				}
 
