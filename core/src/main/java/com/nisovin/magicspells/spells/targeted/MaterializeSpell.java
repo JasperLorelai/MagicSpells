@@ -2,6 +2,7 @@ package com.nisovin.magicspells.spells.targeted;
 
 import java.util.*;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Effect;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -41,7 +42,7 @@ public class MaterializeSpell extends TargetedSpell implements TargetedLocationS
 	private final ConfigData<Boolean> fallbackToOriginal;
 	private final ConfigData<Boolean> restartPatternEachRow;
 
-	private Material defaultMaterial;
+	private final ConfigData<BlockData> defaultBlock;
 
 	private final ConfigData<Integer> height;
 	private final ConfigData<Integer> resetDelay;
@@ -50,7 +51,7 @@ public class MaterializeSpell extends TargetedSpell implements TargetedLocationS
 
 	private final String strFailed;
 
-	private Material[][] patterns;
+	private BlockData[][] patterns;
 
 	private int rowSize = 1;
 	private int columnSize = 1;
@@ -69,12 +70,7 @@ public class MaterializeSpell extends TargetedSpell implements TargetedLocationS
 		fallbackToOriginal = getConfigDataBoolean("fallback-to-original", false);
 		restartPatternEachRow = getConfigDataBoolean("restart-pattern-each-row", false);
 
-		String blockType = getConfigString("block-type", "stone");
-		defaultMaterial = Material.matchMaterial(blockType);
-		if (defaultMaterial == null || !defaultMaterial.isBlock()) {
-			MagicSpells.error("MaterializeSpell '" + internalName + "' has an invalid 'block-type' defined! Falling back to 'stone'.");
-			defaultMaterial = Material.STONE;
-		}
+		defaultBlock = getConfigDataBlockData("block-type", Material.STONE.createBlockData());
 
 		height = getConfigDataInt("height", 1);
 		resetDelay = getConfigDataInt("reset-delay", 0);
@@ -108,22 +104,22 @@ public class MaterializeSpell extends TargetedSpell implements TargetedLocationS
 	}
 
 	public void parsePatterns(List<String> patternList) {
-		patterns = new Material[patternList.size()][];
+		patterns = new BlockData[patternList.size()][];
 
 		for (int i = 0; i < patternList.size(); i++) {
-			String[] split = patternList.get(i).split(",");
-			patterns[i] = new Material[split.length];
+			String[] split = patternList.get(i).split(",(?![^\\[]*])");
+			patterns[i] = new BlockData[split.length];
 
 			for (int j = 0; j < split.length; j++) {
-				String matName = split[j];
-				Material mat = Material.matchMaterial(matName);
-				if (mat == null || !mat.isBlock()) {
-					MagicSpells.error("MaterializeSpell " + internalName + " has an invalid 'patterns[" + i + "][" + j + "]' defined: '" + matName + "'. Falling back to 'stone'.");
-					mat = Material.STONE;
-				}
+				String dataString = split[j];
 
-				materials.add(mat);
-				patterns[i][j] = mat;
+				try {
+					BlockData data = Bukkit.createBlockData(dataString.toLowerCase());
+					patterns[i][j] = data;
+				} catch (IllegalArgumentException e) {
+					patterns[i][j] = Material.STONE.createBlockData();
+					MagicSpells.error("MaterializeSpell " + internalName + " has an invalid 'patterns[" + i + "][" + j + "]' defined: '" + dataString + "'. Falling back to 'stone'.");
+				}
 			}
 		}
 	}
@@ -194,6 +190,7 @@ public class MaterializeSpell extends TargetedSpell implements TargetedLocationS
 		int rowPosition = 0;
 
 		boolean falling = this.falling.get(data);
+		BlockData defaultBlock = this.defaultBlock.get(data);
 		boolean stretchPattern = this.stretchPattern.get(data);
 		boolean randomizePattern = this.randomizePattern.get(data);
 		boolean restartPatternEachRow = this.restartPatternEachRow.get(data);
@@ -223,24 +220,24 @@ public class MaterializeSpell extends TargetedSpell implements TargetedLocationS
 
 					if (rowPosition >= rowLength) rowPosition = 0;
 
-					Material material;
-					if (stretchPattern && y >= 1) material = spawnBlock.getRelative(BlockFace.DOWN).getType();
+					BlockData blockData;
+					if (stretchPattern && y >= 1) blockData = spawnBlock.getRelative(BlockFace.DOWN).getBlockData();
 					else {
-						if (patterns.length == 0 || rowLength == 0) material = this.defaultMaterial;
+						if (patterns.length == 0 || rowLength == 0) blockData = defaultBlock;
 						else {
 							int index = randomizePattern ? random.nextInt(rowLength) : rowPosition;
-							material = patterns[patternPosition][index];
+							blockData = patterns[patternPosition][index];
 						}
 					}
 
 					rowPosition++;
 
 					if (falling) {
-						spawnFallingBlock(player, spawnBlock, material, data);
+						spawnFallingBlock(player, spawnBlock, blockData, data);
 						continue;
 					}
 
-					boolean done = materializeBlock(player, spawnBlock, material, data.location(spawnLoc), options);
+					boolean done = materializeBlock(player, spawnBlock, blockData, data.location(spawnLoc), options);
 					if (!done) return false;
 				}
 
@@ -259,14 +256,15 @@ public class MaterializeSpell extends TargetedSpell implements TargetedLocationS
 		int resetDelay
 	) {}
 
-	private boolean materializeBlock(Player player, Block block, Material material, SpellData data, MaterializeOptions options) {
-		BlockState blockState = block.getState();
-		block.setType(material, options.applyPhysics);
+	private boolean materializeBlock(Player player, Block block, BlockData blockData, SpellData data, MaterializeOptions options) {
+		BlockState oldState = block.getState();
+		BlockData oldData = block.getBlockData();
+		block.setBlockData(blockData, options.applyPhysics);
 
 		if (options.checkPlugins && player != null) {
-			MagicSpellsBlockPlaceEvent event = new MagicSpellsBlockPlaceEvent(block, blockState, block.getRelative(BlockFace.DOWN), player.getEquipment().getItemInMainHand(), player, true);
+			MagicSpellsBlockPlaceEvent event = new MagicSpellsBlockPlaceEvent(block, oldState, block.getRelative(BlockFace.DOWN), player.getEquipment().getItemInMainHand(), player, true);
 			if (!event.callEvent()) {
-				blockState.update(true);
+				oldState.update(true);
 				return false;
 			}
 		}
@@ -277,7 +275,7 @@ public class MaterializeSpell extends TargetedSpell implements TargetedLocationS
 			playSpellEffectsTrail(player.getLocation(), block.getLocation(), data);
 		}
 
-		if (options.playBreakEffect) block.getWorld().playEffect(block.getLocation(), Effect.STEP_SOUND, blockState.getBlockData());
+		if (options.playBreakEffect) block.getWorld().playEffect(block.getLocation(), Effect.STEP_SOUND, oldData);
 		if (options.removeBlocks) blocks.put(block.getLocation(), blockData);
 
 		if (options.resetDelay <= 0) return true;
@@ -293,19 +291,19 @@ public class MaterializeSpell extends TargetedSpell implements TargetedLocationS
 				if (!event.callEvent()) return;
 			}
 
-			BlockData blockData = block.getBlockData();
+			BlockData currentData = block.getBlockData();
 			block.setType(Material.AIR);
 
 			playSpellEffects(EffectPosition.BLOCK_DESTRUCTION, block.getLocation(), data);
-			if (options.playBreakEffect) block.getWorld().playEffect(block.getLocation(), Effect.STEP_SOUND, blockData);
+			if (options.playBreakEffect) block.getWorld().playEffect(block.getLocation(), Effect.STEP_SOUND, currentData);
 		}, options.resetDelay);
 
 		return true;
 	}
 
-	private void spawnFallingBlock(Player player, Block block, Material material, SpellData data) {
+	private void spawnFallingBlock(Player player, Block block, BlockData blockData, SpellData data) {
 		Location location = block.getLocation().add(0.5, fallHeight.get(data), 0.5);
-		block.getWorld().spawn(location, FallingBlock.class, fb -> fb.setBlockData(material.createBlockData()));
+		block.getWorld().spawn(location, FallingBlock.class, fb -> fb.setBlockData(blockData));
 
 		playSpellEffects(EffectPosition.TARGET, block.getLocation(), data);
 		if (player != null) {
