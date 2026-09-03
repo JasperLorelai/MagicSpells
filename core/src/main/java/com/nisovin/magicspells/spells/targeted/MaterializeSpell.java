@@ -37,7 +37,9 @@ public class MaterializeSpell extends TargetedSpell implements TargetedLocationS
 	private final ConfigData<Boolean> removeBlocks;
 	private final ConfigData<Boolean> stretchPattern;
 	private final ConfigData<Boolean> playBreakEffect;
+	private final ConfigData<Boolean> checkBlockAbove;
 	private final ConfigData<Boolean> randomizePattern;
+	private final ConfigData<Boolean> fallbackToOriginal;
 	private final ConfigData<Boolean> restartPatternEachRow;
 
 	private Material defaultMaterial;
@@ -63,7 +65,9 @@ public class MaterializeSpell extends TargetedSpell implements TargetedLocationS
 		removeBlocks = getConfigDataBoolean("remove-blocks", true);
 		stretchPattern = getConfigDataBoolean("stretch-pattern", false);
 		playBreakEffect = getConfigDataBoolean("play-break-effect", true);
+		checkBlockAbove = getConfigDataBoolean("check-block-above", true);
 		randomizePattern = getConfigDataBoolean("randomize-pattern", false);
+		fallbackToOriginal = getConfigDataBoolean("fallback-to-original", false);
 		restartPatternEachRow = getConfigDataBoolean("restart-pattern-each-row", false);
 
 		String blockType = getConfigString("block-type", "stone");
@@ -164,20 +168,30 @@ public class MaterializeSpell extends TargetedSpell implements TargetedLocationS
 		Player caster = data.caster() instanceof Player p ? p : null;
 
 		Block block = data.location().getBlock();
-		if (!block.getType().isAir()) {
-			block = block.getRelative(BlockFace.UP);
-			data = data.location(block.getLocation());
+		if (block.getType().isAir() || !checkBlockAbove.get(data))
+			return castMaterialize(caster, block, data);
 
-			SpellTargetLocationEvent event = new SpellTargetLocationEvent(this, data, block.getLocation());
-			if (!event.callEvent()) return noTarget(strFailed, event);
-			data = event.getSpellData();
-			block = event.getTargetLocation().getBlock();
+		Block blockUp = block.getRelative(BlockFace.UP);
+		SpellData dataUp = data.location(blockUp.getLocation());
 
-			if (!block.getType().isAir()) return noTarget(strFailed, data);
+		SpellTargetLocationEvent event = new SpellTargetLocationEvent(this, dataUp, blockUp.getLocation());
+		if (event.callEvent()) {
+			dataUp = event.getSpellData();
+			blockUp = event.getTargetLocation().getBlock();
+
+			if (blockUp.getType().isAir())
+				return castMaterialize(caster, blockUp, dataUp);
 		}
 
-		boolean done = materializeArea(caster, block, data);
-		return done ? new CastResult(PostCastAction.HANDLE_NORMALLY, data) : noTarget(strFailed, data);
+		return fallbackToOriginal.get(data) ?
+			castMaterialize(caster, block, data) :
+			noTarget(strFailed, event);
+	}
+
+	private CastResult castMaterialize(Player caster, Block block, SpellData data) {
+		return materializeArea(caster, block, data) ?
+			new CastResult(PostCastAction.HANDLE_NORMALLY, data) :
+			noTarget(strFailed, data);
 	}
 
 	private boolean materializeArea(Player player, Block block, SpellData data) {
