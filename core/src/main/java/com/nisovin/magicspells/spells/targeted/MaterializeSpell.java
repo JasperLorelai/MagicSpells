@@ -28,8 +28,7 @@ import com.nisovin.magicspells.events.MagicSpellsBlockBreakEvent;
  */
 public class MaterializeSpell extends TargetedSpell implements TargetedLocationSpell {
 
-	private final List<Block> blocks = new ArrayList<>();
-	private final Set<Material> materials = new HashSet<>();
+	private final Map<Location, BlockData> blocks = new HashMap<>();
 
 	private final ConfigData<Boolean> falling;
 	private final ConfigData<Boolean> applyPhysics;
@@ -109,12 +108,6 @@ public class MaterializeSpell extends TargetedSpell implements TargetedLocationS
 	}
 
 	public void parsePatterns(List<String> patternList) {
-		if (patternList.isEmpty()) {
-			patterns = new Material[0][0];
-			materials.add(defaultMaterial);
-			return;
-		}
-
 		patterns = new Material[patternList.size()][];
 
 		for (int i = 0; i < patternList.size(); i++) {
@@ -137,8 +130,8 @@ public class MaterializeSpell extends TargetedSpell implements TargetedLocationS
 
 	@Override
 	public void turnOff() {
-		for (Block b : blocks) {
-			b.setType(Material.AIR);
+		for (Location loc : blocks.keySet()) {
+			loc.getBlock().setType(Material.AIR);
 		}
 
 		blocks.clear();
@@ -285,26 +278,26 @@ public class MaterializeSpell extends TargetedSpell implements TargetedLocationS
 		}
 
 		if (options.playBreakEffect) block.getWorld().playEffect(block.getLocation(), Effect.STEP_SOUND, blockState.getBlockData());
-		if (options.removeBlocks) blocks.add(block);
+		if (options.removeBlocks) blocks.put(block.getLocation(), blockData);
 
 		if (options.resetDelay <= 0) return true;
 		MagicSpells.scheduleDelayedTask(() -> {
-			if (materials.contains(block.getType())) {
-				blocks.remove(block);
+			if (!block.getBlockData().equals(blockData)) return;
 
-				playSpellEffects(EffectPosition.DELAYED, block.getLocation(), data);
+			blocks.remove(block.getLocation());
 
-				if (options.checkPlugins && player != null) {
-					MagicSpellsBlockBreakEvent event = new MagicSpellsBlockBreakEvent(block, player);
-					if (!event.callEvent()) return;
-				}
+			playSpellEffects(EffectPosition.DELAYED, block.getLocation(), data);
 
-				BlockData blockData = block.getBlockData();
-				block.setType(Material.AIR);
-
-				playSpellEffects(EffectPosition.BLOCK_DESTRUCTION, block.getLocation(), data);
-				if (options.playBreakEffect) block.getWorld().playEffect(block.getLocation(), Effect.STEP_SOUND, blockData);
+			if (options.checkPlugins && player != null) {
+				MagicSpellsBlockBreakEvent event = new MagicSpellsBlockBreakEvent(block, player);
+				if (!event.callEvent()) return;
 			}
+
+			BlockData blockData = block.getBlockData();
+			block.setType(Material.AIR);
+
+			playSpellEffects(EffectPosition.BLOCK_DESTRUCTION, block.getLocation(), data);
+			if (options.playBreakEffect) block.getWorld().playEffect(block.getLocation(), Effect.STEP_SOUND, blockData);
 		}, options.resetDelay);
 
 		return true;
