@@ -28,7 +28,7 @@ import com.nisovin.magicspells.spelleffects.EffectPosition;
 
 public class LevitateSpell extends TargetedSpell implements TargetedEntitySpell {
 
-	private final Map<UUID, Levitator> levitating;
+	private final Map<UUID, Levitator> levitating = new HashMap<>();
 
 	private final ConfigData<Integer> tickRate;
 	private final ConfigData<Integer> duration;
@@ -58,8 +58,6 @@ public class LevitateSpell extends TargetedSpell implements TargetedEntitySpell 
 		cancelOnSpellCast = getConfigBoolean("cancel-on-spell-cast", false);
 		cancelOnItemSwitch = getConfigBoolean("cancel-on-item-switch", true);
 		cancelOnTakeDamage = getConfigBoolean("cancel-on-take-damage", true);
-
-		levitating = new HashMap<>();
 	}
 
 	@Override
@@ -240,15 +238,9 @@ public class LevitateSpell extends TargetedSpell implements TargetedEntitySpell 
 
 			counter++;
 
-			if (duration > 0 && counter >= duration) {
+			if (shouldStop()) {
 				stop();
 				levitating.remove(data.caster().getUniqueId());
-			}
-
-			if (!data.caster().getWorld().equals(data.target().getWorld())) return;
-			if (data.caster().getLocation().distanceSquared(data.target().getLocation()) > maxDistanceSq) return;
-			if (!data.caster().isValid()) {
-				stop();
 				return;
 			}
 
@@ -266,6 +258,13 @@ public class LevitateSpell extends TargetedSpell implements TargetedEntitySpell 
 
 			Vector velocity = targetLoc.subtract(data.target().getLocation()).multiply(tickRate / 25f + 0.1).toVector();
 			data.target().setVelocity(velocity);
+		}
+
+		private boolean shouldStop() {
+			return (duration > 0 && counter >= duration) ||
+				!data.caster().getWorld().equals(data.target().getWorld()) ||
+				!data.caster().isValid() || !data.target().isValid() ||
+				data.caster().getLocation().distanceSquared(data.target().getLocation()) > maxDistanceSq;
 		}
 
 		private void stop() {
