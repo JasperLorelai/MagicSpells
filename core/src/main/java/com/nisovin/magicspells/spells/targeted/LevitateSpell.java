@@ -37,6 +37,7 @@ public class LevitateSpell extends TargetedSpell implements TargetedEntitySpell 
 	private final ConfigData<Double> minDistance;
 	private final ConfigData<Double> maxDistance;
 	private final ConfigData<Double> distanceChange;
+	private final ConfigData<Double> maxChangeDistance;
 
 	private final boolean cancelOnSpellCast;
 	private final boolean cancelOnItemSwitch;
@@ -55,6 +56,7 @@ public class LevitateSpell extends TargetedSpell implements TargetedEntitySpell 
 		minDistance = getConfigDataDouble("min-distance", 1F);
 		maxDistance = getConfigDataDouble("max-distance", 200);
 		distanceChange = getConfigDataDouble("distance-change", 0F);
+		maxChangeDistance = getConfigDataDouble("max-change-distance", 0);
 
 		cancelOnSpellCast = getConfigBoolean("cancel-on-spell-cast", false);
 		cancelOnItemSwitch = getConfigBoolean("cancel-on-item-switch", true);
@@ -224,6 +226,7 @@ public class LevitateSpell extends TargetedSpell implements TargetedEntitySpell 
 		private final double maxDistanceSq;
 		private final double minDistance;
 		private final double yOffset;
+		private final double maxChangeDistance;
 		private final int duration;
 		private final int tickRate;
 		private final int taskId;
@@ -247,6 +250,7 @@ public class LevitateSpell extends TargetedSpell implements TargetedEntitySpell 
 			distanceChange = LevitateSpell.this.distanceChange.get(data);
 			minDistance = LevitateSpell.this.minDistance.get(data);
 			yOffset = LevitateSpell.this.yOffset.get(data);
+			maxChangeDistance = LevitateSpell.this.maxChangeDistance.get(data);
 
 			taskId = MagicSpells.scheduleRepeatingTask(this, 0, tickRate);
 		}
@@ -263,7 +267,9 @@ public class LevitateSpell extends TargetedSpell implements TargetedEntitySpell 
 				return;
 			}
 
-			if (!controlOnItemSwitch && distanceChange != 0 && distance > minDistance) {
+			if (controlOnItemSwitch) {
+				if (maxChangeDistance > minDistance) distance = Math.min(distance, maxChangeDistance);
+			} else if (distanceChange != 0 && distance > minDistance) {
 				distance -= distanceChange;
 			}
 
