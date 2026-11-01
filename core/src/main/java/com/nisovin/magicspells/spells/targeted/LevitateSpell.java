@@ -41,6 +41,7 @@ public class LevitateSpell extends TargetedSpell implements TargetedEntitySpell 
 	private final boolean cancelOnSpellCast;
 	private final boolean cancelOnItemSwitch;
 	private final boolean cancelOnTakeDamage;
+	private final boolean controlOnItemSwitch;
 
 	private SpellFilter filter;
 
@@ -58,6 +59,7 @@ public class LevitateSpell extends TargetedSpell implements TargetedEntitySpell 
 		cancelOnSpellCast = getConfigBoolean("cancel-on-spell-cast", false);
 		cancelOnItemSwitch = getConfigBoolean("cancel-on-item-switch", true);
 		cancelOnTakeDamage = getConfigBoolean("cancel-on-take-damage", true);
+		controlOnItemSwitch = getConfigBoolean("control-on-item-switch", false);
 	}
 
 	@Override
@@ -66,9 +68,9 @@ public class LevitateSpell extends TargetedSpell implements TargetedEntitySpell 
 
 		filter = getConfigSpellFilter();
 
-		if (cancelOnItemSwitch) registerEvents(new ItemSwitchListener());
 		if (cancelOnSpellCast) registerEvents(new SpellCastListener());
 		if (cancelOnTakeDamage) registerEvents(new DamageListener());
+		if (cancelOnItemSwitch || controlOnItemSwitch) registerEvents(new ItemSwitchListener());
 	}
 
 	@Override
@@ -164,11 +166,28 @@ public class LevitateSpell extends TargetedSpell implements TargetedEntitySpell 
 
 	public class ItemSwitchListener implements Listener {
 
-		@EventHandler
+		@EventHandler(ignoreCancelled = true)
 		public void onItemSwitch(PlayerItemHeldEvent event) {
 			Player pl = event.getPlayer();
 			if (!isLevitating(pl)) return;
-			levitating.remove(pl.getUniqueId()).stop();
+
+			if (cancelOnItemSwitch) {
+				levitating.remove(pl.getUniqueId()).stop();
+				return;
+			}
+
+			if (!controlOnItemSwitch) return;
+
+			int direction = event.getPreviousSlot() - event.getNewSlot();
+
+			if (direction > 4) direction -= 9;
+			else if (direction < -4) direction += 9;
+			if (direction == 0) return;
+
+			Levitator levitator = levitating.get(pl.getUniqueId());
+			levitator.distance += Integer.signum(direction) * levitator.distanceChange;
+
+			event.setCancelled(true);
 		}
 
 	}
@@ -244,10 +263,11 @@ public class LevitateSpell extends TargetedSpell implements TargetedEntitySpell 
 				return;
 			}
 
-			if (distanceChange != 0 && distance > minDistance) {
+			if (!controlOnItemSwitch && distanceChange != 0 && distance > minDistance) {
 				distance -= distanceChange;
-				if (distance < minDistance) distance = minDistance;
 			}
+
+			distance = Math.max(distance, minDistance);
 
 			data.target().setFallDistance(0);
 
