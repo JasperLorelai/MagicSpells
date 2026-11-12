@@ -129,7 +129,6 @@ public class EntityData {
 		this(config, false);
 	}
 
-	@SuppressWarnings("UnstableApiUsage")
 	public EntityData(ConfigurationSection config, boolean forceOptional) {
 		entityType = ConfigDataUtil.getEntityType(config, "entity", null);
 

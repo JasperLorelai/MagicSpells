@@ -18,7 +18,6 @@ import java.lang.invoke.MethodType;
 import java.lang.reflect.Constructor;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
-import java.lang.annotation.Annotation;
 
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -2093,9 +2092,7 @@ public class MagicSpells extends JavaPlugin {
 		if (plugin.profilingTotalTime == null) return;
 		if (plugin.profilingRuns == null) return;
 
-		PrintWriter writer = null;
-		try {
-			writer = new PrintWriter(new File(plugin.getDataFolder(), "profiling_report_" + System.currentTimeMillis() + ".txt"));
+		try (PrintWriter writer = new PrintWriter(new File(plugin.getDataFolder(), "profiling_report_" + System.currentTimeMillis() + ".txt"))) {
 			long totalTime = 0;
 			writer.println("Key\tRuns\tAvg\tTotal");
 			for (String key : plugin.profilingTotalTime.keySet()) {
@@ -2109,8 +2106,6 @@ public class MagicSpells extends JavaPlugin {
 		} catch (Exception ex) {
 			error("Failed to save profiling report");
 			handleException(ex);
-		} finally {
-			if (writer != null) writer.close();
 		}
 		plugin.profilingTotalTime.clear();
 		plugin.profilingRuns.clear();
@@ -2249,11 +2244,11 @@ public class MagicSpells extends JavaPlugin {
 						cooldown = cooldowns.get(id);
 						if (cooldown <= System.currentTimeMillis()) continue;
 						writer.append(spell.getInternalName())
-								.append(String.valueOf(':'))
+								.append(':')
 								.append(id.toString())
-								.append(String.valueOf(':'))
+								.append(':')
 								.append(String.valueOf(cooldown))
-								.append(String.valueOf('\n'));
+								.append('\n');
 					}
 				}
 				writer.close();

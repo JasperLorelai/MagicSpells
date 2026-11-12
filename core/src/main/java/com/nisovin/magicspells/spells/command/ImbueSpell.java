@@ -129,7 +129,7 @@ public class ImbueSpell extends CommandSpell implements BlockingSuggestionProvid
 		if (data.args().length > 1 && CAST_ARG_USES_PATTERN.asMatchPredicate().test(data.args()[1]) && (allowSpecifyUses.get(data) || Perm.ADVANCED_IMBUE.has(caster))) {
 			uses = Integer.parseInt(data.args()[1]);
 		}
-		uses = Math.max(Math.min(uses, maxUses), 1);
+		uses = Math.clamp(uses, 1, maxUses);
 
 		if (chargeReagentsForSpellPerUse.get(data) && !Perm.NO_REAGENTS.has(caster)) {
 			SpellReagents reagents = spell.getReagents().multiply(uses);
