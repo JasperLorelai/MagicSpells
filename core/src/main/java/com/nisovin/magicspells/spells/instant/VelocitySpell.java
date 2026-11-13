@@ -14,7 +14,8 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.EventHandler;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.EventPriority;
-import org.bukkit.event.entity.EntityDamageEvent;
+
+import io.papermc.paper.event.entity.EntityLandEvent;
 
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.SpellData;
@@ -138,7 +139,7 @@ public class VelocitySpell extends InstantSpell implements TargetedEntitySpell, 
 		public void stop() {
 			if (taskId == -1) return;
 
-			EntityDamageEvent.getHandlerList().unregister(this);
+			EntityLandEvent.getHandlerList().unregister(this);
 			MagicSpells.cancelTask(taskId);
 			taskId = -1;
 
@@ -178,8 +179,7 @@ public class VelocitySpell extends InstantSpell implements TargetedEntitySpell, 
 		}
 
 		@EventHandler(priority = EventPriority.LOWEST)
-		public void onFall(EntityDamageEvent event) {
-			if (event.getCause() != EntityDamageEvent.DamageCause.FALL) return;
+		public void onFall(EntityLandEvent event) {
 			if (!(event.getEntity() instanceof LivingEntity target) || !target.isOnGround()) return;
 
 			Collection<VelocityData> jumpingData = jumping.get(target);

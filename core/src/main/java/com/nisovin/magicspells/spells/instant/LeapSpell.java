@@ -11,7 +11,8 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.EventHandler;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.EventPriority;
-import org.bukkit.event.entity.EntityDamageEvent;
+
+import io.papermc.paper.event.entity.EntityLandEvent;
 
 import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.Subspell;
@@ -145,7 +146,7 @@ public class LeapSpell extends InstantSpell {
 		public void stop() {
 			if (taskId == -1) return;
 
-			EntityDamageEvent.getHandlerList().unregister(this);
+			EntityLandEvent.getHandlerList().unregister(this);
 			MagicSpells.cancelTask(taskId);
 			taskId = -1;
 
@@ -187,8 +188,7 @@ public class LeapSpell extends InstantSpell {
 		}
 
 		@EventHandler(priority = EventPriority.LOWEST)
-		public void onFall(EntityDamageEvent event) {
-			if (event.getCause() != EntityDamageEvent.DamageCause.FALL) return;
+		public void onLand(EntityLandEvent event) {
 			if (!(event.getEntity() instanceof LivingEntity caster) || !caster.isOnGround()) return;
 
 			Collection<LeapData> jumpingData = jumping.get(caster);
