@@ -7,6 +7,7 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.function.Predicate;
 
+import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.ComponentLike;
 import net.kyori.adventure.text.format.NamedTextColor;
 
@@ -259,7 +260,11 @@ public class Util {
 		}
 
 		receiver.playHurtAnimation(angle);
-		MagicSpells.getVolatileCodeHandler().playHurtSound(receiver);
+
+		var sound = receiver.getHurtSound();
+		if (sound == null) return;
+
+		receiver.getWorld().playSound(Sound.sound(sound, receiver.soundSource(), receiver.getSoundVolume(), receiver.getSoundPitch()), receiver);
 	}
 
 	public static String arrayJoin(String[] array, char with) {

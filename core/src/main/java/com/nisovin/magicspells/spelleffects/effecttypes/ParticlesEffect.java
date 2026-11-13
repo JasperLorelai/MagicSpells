@@ -20,7 +20,6 @@ import org.bukkit.Particle.DustTransition;
 import org.bukkit.configuration.ConfigurationSection;
 
 import com.nisovin.magicspells.util.Name;
-import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.spelleffects.SpellEffect;
@@ -165,12 +164,10 @@ public class ParticlesEffect extends SpellEffect {
 	}
 
 	protected Object getParticleData(@NotNull Particle particle, @Nullable Entity entity, @NotNull Location location, @NotNull SpellData data) {
-		Object nmsData = MagicSpells.getVolatileCodeHandler().getVolatileParticleData(
-			particle,
-			() -> geyserWaterBlocks.get(data),
-			() -> geyserBurstImpulse.get(data)
-		);
-		if (nmsData != null) return nmsData;
+//		Object nmsData = MagicSpells.getVolatileCodeHandler().getVolatileParticleData(
+//			particle,
+//		);
+//		if (nmsData != null) return nmsData;
 
 		Class<?> type = particle.getDataType();
 
@@ -183,6 +180,21 @@ public class ParticlesEffect extends SpellEffect {
 		if (type == ItemStack.class) {
 			Material material = this.material.get(data);
 			return material == null ? null : ItemStack.of(material);
+		}
+
+		if (type == Particle.Geyser.class) {
+			Integer waterBlocks = geyserWaterBlocks.get(data);
+			if (waterBlocks == null) return null;
+
+			return new Particle.Geyser(waterBlocks);
+		}
+
+		if (type == Particle.GeyserBase.class) {
+			Integer waterBlocks = geyserWaterBlocks.get(data);
+			Float burstImpulse = geyserBurstImpulse.get(data);
+			if (waterBlocks == null || burstImpulse == null) return null;
+
+			return new Particle.GeyserBase(waterBlocks, burstImpulse);
 		}
 
 		if (type == Vibration.class) {
