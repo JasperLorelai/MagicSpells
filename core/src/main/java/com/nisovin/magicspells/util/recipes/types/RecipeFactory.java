@@ -123,12 +123,12 @@ public abstract class RecipeFactory<R extends CustomRecipe> {
 		ItemStack clone = original.clone();
 		if (!original.hasItemMeta()) return List.of(clone);
 
-		Component displayName = original.getItemMeta().displayName();
-		if (displayName == null || !displayName.hasDecoration(TextDecoration.ITALIC))
+		Component customName = original.getItemMeta().customName();
+		if (customName == null || !customName.hasDecoration(TextDecoration.ITALIC))
 			return List.of(clone);
 
 		ItemStack item = original.clone();
-		item.editMeta(meta -> meta.displayName(displayName.decoration(TextDecoration.ITALIC, TextDecoration.State.NOT_SET)));
+		item.editMeta(meta -> meta.customName(customName.decoration(TextDecoration.ITALIC, TextDecoration.State.NOT_SET)));
 		return List.of(clone, item);
 	}
 

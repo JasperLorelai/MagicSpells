@@ -225,7 +225,7 @@ public class ImbueSpell extends CommandSpell implements BlockingSuggestionProvid
 		ItemMeta meta = item.getItemMeta();
 		if (!strItemName.isEmpty()) {
 			String displayName = strItemName.replace("%s", spell.getName()).replace("%u", uses + "");
-			meta.displayName(Util.getItemMiniMessage(displayName));
+			meta.customName(Util.getItemMiniMessage(displayName));
 		}
 		if (!strItemLore.isEmpty()) {
 			String lore = strItemLore.replace("%s", spell.getName()).replace("%u", uses + "");

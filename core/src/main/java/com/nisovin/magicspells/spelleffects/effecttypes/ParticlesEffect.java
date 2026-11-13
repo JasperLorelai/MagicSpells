@@ -182,7 +182,7 @@ public class ParticlesEffect extends SpellEffect {
 
 		if (type == ItemStack.class) {
 			Material material = this.material.get(data);
-			return material == null ? null : new ItemStack(material);
+			return material == null ? null : ItemStack.of(material);
 		}
 
 		if (type == Vibration.class) {

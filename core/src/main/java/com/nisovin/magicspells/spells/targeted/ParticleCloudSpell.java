@@ -112,12 +112,12 @@ public class ParticleCloudSpell extends TargetedSpell implements TargetedLocatio
 		if (material.isConstant()) {
 			Material mat = material.get();
 
-			ItemStack stack = mat != null && mat.isItem() ? new ItemStack(mat) : null;
+			ItemStack stack = mat != null && mat.isItem() ? ItemStack.of(mat) : null;
 			item = data -> stack;
 		} else {
 			item = data -> {
 				Material mat = material.get(data);
-				return mat != null && mat.isItem() ? new ItemStack(mat) : null;
+				return mat != null && mat.isItem() ? ItemStack.of(mat) : null;
 			};
 		}
 

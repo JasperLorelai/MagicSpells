@@ -254,7 +254,7 @@ public class EntityData {
 
 		// Abstract Horse
 		saddled = addBoolean(transformers, config, "saddled", false, AbstractHorse.class, (horse, saddled) -> {
-			if (saddled) horse.getInventory().setSaddle(new ItemStack(Material.SADDLE));
+			if (saddled) horse.getInventory().setSaddle(ItemStack.of(Material.SADDLE));
 		}, forceOptional);
 
 		// Abstract Skeleton
@@ -492,7 +492,7 @@ public class EntityData {
 			"llama.variant", "llama-variant", "color"
 		);
 		fallback(
-			key -> addOptMaterial(transformers, config, key, Llama.class, (llama, material) -> llama.getInventory().setDecor(new ItemStack(material))),
+			key -> addOptMaterial(transformers, config, key, Llama.class, (llama, material) -> llama.getInventory().setDecor(ItemStack.of(material))),
 			"llama.decor", "llama-decor", "material"
 		);
 

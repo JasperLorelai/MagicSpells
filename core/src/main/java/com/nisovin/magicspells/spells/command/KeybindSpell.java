@@ -127,13 +127,13 @@ public class KeybindSpell extends CommandSpell implements BlockingSuggestionProv
 		}
 
 		if (!item.getType().isAir()) {
-			caster.sendMessage("Not empty.");
+			caster.sendPlainMessage("Not empty.");
 			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 		}
 
 		Spell spell = MagicSpells.getSpellByName(data.args()[0]);
 		if (spell == null || !MagicSpells.getSpellbook(caster).hasSpell(spell)) {
-			caster.sendMessage("No spell.");
+			caster.sendPlainMessage("No spell.");
 			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 		}
 
